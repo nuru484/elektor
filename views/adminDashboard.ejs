@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/styles/adminDashboardStyles.css" />
+    <title>Admin Dashboard</title>
+  </head>
+  <body>
+    <h1>Admin Dashboard</h1>
+
+    <!-- Search form -->
+    <form action="/user/search" method="GET">
+      <input type="text" name="query" placeholder="Search for a student..." />
+      <button type="submit" class="search">Search</button>
+    </form>
+
+    <h2>Students Pending Approval</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Loop through the pendingStudents array -->
+        <% pendingStudents.forEach(student => { %>
+        <tr>
+          <!-- Display the student's name -->
+          <td><%= student.student_name %></td>
+
+          <!-- Display the student's status -->
+          <td><%= student.status ? 'Approved' : 'Pending' %></td>
+
+          <td>
+            <!-- Show the Approve button if the student is pending approval -->
+            <% if (!student.status) { %>
+            <form
+              action="/user/approve-user/<%= student.id %>"
+              method="POST"
+              style="display: inline"
+            >
+              <button type="submit" class="approve">Approve</button>
+            </form>
+            <% } %>
+            <form
+              action="/user/reject-user/<%= student.id %>"
+              method="POST"
+              style="display: inline"
+            >
+              <button type="submit" class="reject">Reject</button>
+            </form>
+          </td>
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </body>
+</html>

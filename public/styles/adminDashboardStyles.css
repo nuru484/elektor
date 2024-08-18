@@ -1,0 +1,99 @@
+/* Reset some default styling */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+}
+
+h1 {
+  color: #333;
+  margin-top: 20px;
+}
+
+form {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+input[type='text'] {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  width: 200px;
+}
+
+button[type='submit'] {
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+form button[type='submit'].search {
+  background-color: #24a440;
+}
+
+form button[type='submit'].search:hover {
+  background-color: #218838;
+}
+
+form button[type='submit'].approve {
+  background-color: #24a440;
+}
+
+form button[type='submit'].approve:hover {
+  background-color: #218838;
+}
+
+form button[type='submit'].reject {
+  background-color: #dc3545;
+}
+
+form button[type='submit'].reject:hover {
+  background-color: #c82333;
+}
+
+h2 {
+  color: #333;
+  margin-bottom: 20px;
+}
+
+table {
+  width: 80%;
+  border-collapse: collapse;
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+thead {
+  background-color: #007bff;
+  color: #fff;
+}
+
+th,
+td {
+  padding: 10px;
+  text-align: center; /* Center-align text in table cells */
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  font-weight: bold;
+}
+
+tbody tr:hover {
+  background-color: #f1f1f1;
+}

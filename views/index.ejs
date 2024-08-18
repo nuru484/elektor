@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/styles/index.css" />
+    <title>Login</title>
+  </head>
+  <body>
+    <h1>Log In To Vote</h1>
+
+    <!-- Display errors if any -->
+    <% if (errors && errors.length > 0) { %>
+    <ul>
+      <% errors.forEach(function(error) { %>
+      <li style="color: red"><%= error.message %></li>
+      <% }); %>
+    </ul>
+    <% } %>
+
+    <form action="/userLogin" method="POST">
+      <div>
+        <label for="username">Name</label>
+        <input
+          id="username"
+          name="username"
+          placeholder="username"
+          type="text"
+          class="username"
+        />
+      </div>
+      <div>
+        <label for="index_number">Index Number</label>
+        <input
+          id="password"
+          name="password"
+          placeholder="password"
+          type="text"
+          class="index_number"
+          required
+        />
+      </div>
+      <button type="submit">Log In</button>
+    </form>
+  </body>
+</html>

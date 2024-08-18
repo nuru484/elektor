@@ -1,0 +1,227 @@
+/* General Reset */
+body,
+h1,
+h2,
+h3,
+h5,
+p,
+button {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f0f4f3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  text-align: center;
+  flex-direction: column;
+  padding: 20px;
+}
+
+header {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  margin-bottom: 20px;
+  width: 90%;
+  max-width: 800px;
+  color: #2c6b2f;
+}
+
+h1 {
+  color: #2c6b2f;
+  font-size: 2.5rem;
+  margin-bottom: 10px;
+}
+
+h2 {
+  color: #4caf50;
+  font-size: 1.6rem;
+  margin-bottom: 5px;
+  font-weight: 600;
+}
+
+h5 {
+  color: #666;
+  font-size: 1.1rem;
+  margin-top: 0;
+  font-weight: 400;
+}
+
+.candidates-main-container {
+  border: 2px solid #388e3c;
+  margin: 20px auto;
+  border-radius: 12px;
+  background-color: #ffffff;
+  padding: 20px;
+}
+
+.candidates-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  padding: 20px;
+  border-top: 2px solid #a5d6a7;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.candidate {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  background-color: #ffffff;
+  padding: 15px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  width: 200px;
+  text-align: center;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.candidate:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.candidate-photo {
+  max-width: 120px;
+  height: auto;
+  border-radius: 50%;
+}
+
+.candidate-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #388e3c;
+}
+
+fieldset {
+  border: none;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 12px;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+button[type='submit'],
+.submit-vote-button {
+  width: 100%;
+  max-width: 300px;
+  padding: 12px;
+  background-color: #4caf50;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  margin-top: 20px;
+}
+
+button[type='submit']:hover,
+.submit-vote-button:hover {
+  background-color: #388e3c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+form[action='/'] button {
+  background-color: #dc3545;
+  color: #ffffff;
+  width: 150px;
+  max-width: 300px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+form[action='/'] button:hover {
+  background-color: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.vote-button {
+  background-color: #f1f8e9;
+  border: 1px solid #c8e6c9;
+  padding: 12px 24px;
+  cursor: pointer;
+  border-radius: 6px;
+  outline: none;
+  font-weight: 600;
+  color: #388e3c;
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+
+.vote-button.selected {
+  background-color: #4caf50;
+  color: #ffffff;
+  border: 1px solid #4caf50;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+  background-color: #fefefe;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+  max-width: 500px;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.confirm-vote-button,
+.cancel-vote-button,
+.backToVoteAllButtonClass {
+  margin: 10px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.confirm-vote-button {
+  background-color: #28a745;
+  color: white;
+}
+
+.cancel-vote-button,
+.backToVoteAllButtonClass {
+  background-color: #dc3545;
+  color: white;
+}
+
+#selectedCandidatesList {
+  list-style-type: none;
+  padding: 0;
+}
+
+#selectedCandidatesList li {
+  margin: 10px 0;
+  font-size: 16px;
+}

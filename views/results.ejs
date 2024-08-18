@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/styles/resultsStyles.css" />
+    <title>Voting Results</title>
+  </head>
+  <body>
+    <h1>Realtime Voting Results</h1>
+
+    <div id="results">
+      <!-- Voting Statistics -->
+      <div class="stats">
+        <h2>Voting Statistics</h2>
+        <p>Total Number of Voters: <%= votingStats.total_number_of_voters %></p>
+        <p>Voter Turnout: <%= votingStats.voter_turnout %></p>
+        <p>Voter Turnoff: <%= votingStats.voter_turnoff %></p>
+        <p>Total Votes Cast: <%= votingStats.total_votes_cast %></p>
+      </div>
+
+      <!-- Group the results by position -->
+      <% const groupedResults = results.reduce((acc, result) => { if
+      (!acc[result.position]) { acc[result.position] = []; }
+      acc[result.position].push(result); return acc; }, {}); %>
+
+      <!-- Iterate over each position and display a table -->
+      <div class="table-container">
+        <% Object.keys(groupedResults).forEach(position => { %>
+        <div>
+          <h2><%= position %></h2>
+
+          <!-- Calculate total votes for the position -->
+          <% let totalVotesForPosition = groupedResults[position].reduce((acc,
+          result) => acc + result.number_of_votes, 0); console.log(typeof
+          totalVotesForPosition) %>
+
+          <!-- some comments -->
+
+          <% %>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Candidate Name</th>
+                <th>Number of Votes</th>
+                <th>Percentage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% groupedResults[position].forEach(result => { %>
+              <tr>
+                <td><%= result.candidate_name %></td>
+                <td><%= result.number_of_votes %></td>
+                <td>
+                  <% if(totalVotesForPosition === 0) { %> 0% <% } else { %> <%=
+                  ((result.number_of_votes / totalVotesForPosition) *
+                  100).toFixed(2) %>% <% } %>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <% }); %>
+      </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+      const socket = io();
+
+      socket.on('updateResults', (results) => {
+        const resultsContainer = document.getElementById('results');
+        resultsContainer.innerHTML = ''; // Clear current results
+
+        // Group and render the updated results as before
+        const groupedResults = results.reduce((acc, result) => {
+          if (!acc[result.position]) {
+            acc[result.position] = [];
+          }
+          acc[result.position].push(result);
+          return acc;
+        }, {});
+
+        Object.keys(groupedResults).forEach((position) => {
+          const section = document.createElement('div');
+          section.className = 'result-section';
+          section.innerHTML = `<h2>${position}</h2>`;
+
+          const totalVotesForPosition = groupedResults[position].reduce(
+            (acc, result) => acc + result.number_of_votes,
+            0
+          );
+
+          const table = document.createElement('table');
+          table.innerHTML = `
+                  <thead>
+                    <tr>
+                      <th>Candidate Name</th>
+                      <th>Number of Votes</th>
+                      <th>Percentage</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${groupedResults[position]
+                      .map(
+                        (result) => `
+                      <tr>
+                        <td>${result.candidate_name}</td>
+                        <td>${result.number_of_votes}</td>
+                        <td>${(
+                          (result.number_of_votes / totalVotesForPosition) *
+                          100
+                        ).toFixed(2)}%</td>
+                      </tr>
+                    `
+                      )
+                      .join('')}
+                  </tbody>
+                `;
+          section.appendChild(table);
+          resultsContainer.appendChild(section);
+        });
+      });
+    </script>
+
+    <script type="text/javascript" src="/scripts/votesSripts.js"></script>
+  </body>
+</html>
