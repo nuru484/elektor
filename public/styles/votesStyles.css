@@ -64,6 +64,8 @@ h5 {
 
 .candidates-container {
   display: flex;
+  justify-content: center;
+  align-items: center;
   flex-wrap: wrap;
   gap: 40px;
   padding: 20px;
@@ -75,13 +77,14 @@ h5 {
 .candidate {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   align-items: center;
   gap: 20px;
   background-color: #ffffff;
   padding: 15px;
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
   border-radius: 12px;
-  width: 200px;
+  width: 150px;
   text-align: center;
   transition: transform 0.3s, box-shadow 0.3s;
 }
@@ -92,9 +95,10 @@ h5 {
 }
 
 .candidate-photo {
-  max-width: 120px;
-  height: auto;
-  border-radius: 50%;
+  width: 120px;
+  height: 160px;
+  border-radius: 10px;
+  object-fit: cover;
 }
 
 .candidate-name {
@@ -111,7 +115,6 @@ fieldset {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
 }
 
-button[type='submit'],
 .submit-vote-button {
   width: 100%;
   max-width: 300px;
@@ -126,14 +129,13 @@ button[type='submit'],
   margin-top: 20px;
 }
 
-button[type='submit']:hover,
 .submit-vote-button:hover {
   background-color: #388e3c;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-form[action='/'] button {
+.logout-button {
   background-color: #dc3545;
   color: #ffffff;
   width: 150px;
@@ -148,7 +150,7 @@ form[action='/'] button {
   margin-bottom: 20px;
 }
 
-form[action='/'] button:hover {
+.logout-button:hover {
   background-color: #c82333;
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -224,4 +226,46 @@ form[action='/'] button:hover {
 #selectedCandidatesList li {
   margin: 10px 0;
   font-size: 16px;
+}
+
+.skip-button-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  background-color: #ffffff;
+  padding: 15px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+  border-style: none;
+  border-radius: 12px;
+  transition: transform 0.3s, box-shadow 0.3s;
+  height: 250px;
+}
+
+.skip-button {
+  background-color: #f1f8e9;
+  border: 1px solid #c8e6c9;
+  padding: 12px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  outline: none;
+  font-weight: 600;
+  color: #388e3c;
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+}
+
+.skip-button.selected {
+  background-color: #4caf50;
+  color: #ffffff;
+  border: 1px solid #4caf50;
+}
+
+.skip-button-container:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.skip-image {
+  padding: 35px 0;
 }
