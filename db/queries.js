@@ -1,47 +1,39 @@
-// script to delete all students
-`DELETE FROM students`;
+// create candidates table
+`CREATE TABLE candidates (
+    id SERIAL PRIMARY KEY,
+    candidate_name VARCHAR(255) NOT NULL,
+    position VARCHAR(255) NOT NULL,
+    number_of_votes INT DEFAULT 0
+);
+`;
 
-// some sample
-`INSERT INTO students (student_name, index_number, status, voted) VALUES
-('Student1', 'index001', false, false),
-('Student2', 'index002', false, false),
-('Student3', 'index003', false, false),
-('Student4', 'index004', false, false),
-('Student5', 'index005', false, false),
-('Student6', 'index006', false, false),
-('Student7', 'index007', false, false),
-('Student8', 'index008', false, false),
-('Student9', 'index009', false, false),
-('Student10', 'index010', false, false),
-('Student11', 'index011', false, false),
-('Student12', 'index012', false, false),
-('Student13', 'index013', false, false),
-('Student14', 'index014', false, false),
-('Student15', 'index015', false, false),
-('Student16', 'index016', false, false),
-('Student17', 'index017', false, false),
-('Student18', 'index018', false, false),
-('Student19', 'index019', false, false),
-('Student20', 'index020', false, false);`;
+// create students table
+`CREATE TABLE students (
+    id SERIAL PRIMARY KEY,
+    student_name VARCHAR(255) NOT NULL,
+    index_number VARCHAR(50) NOT NULL,
+    status BOOLEAN NOT NULL,
+    voted BOOLEAN NOT NULL
+);
 
-` id | candidate_name |        position        | number_of_votes
-----+----------------+------------------------+-----------------
- 17 | JaneSmith      | President              |              11
- 20 | BobBrown       | Ambassador             |              11
- 22 | DianaEvans     | Wocom                  |              11
- 24 | EvanFox        | Secretary              |              11
- 27 | GeorgeHill     | FinancialOfficer       |              11
- 29 | IanJones       | EntertainmentSecretary |              11
- 25 | KyleLong       | Pro                    |              11
- 32 | NinaOwen       | SportsSecretary        |              11
- 18 | JohnDoe        | President              |               2
- 19 | AliceJohnson   | Ambassador             |               2
- 21 | CharlieDavis   | Wocom                  |               2
- 23 | FionaGreen     | Secretary              |               2
- 28 | HannahIvy      | FinancialOfficer       |               2
- 30 | JennyKing      | EntertainmentSecretary |               2
- 26 | LauraMoore     | Pro                    |               2
- 31 | MarkNelson     | SportsSecretary        |               2`;
+`;
+
+// create admin table
+`CREATE TABLE admin (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL
+);
+`;
+
+// create votingstats table
+`CREATE TABLE voter_statistics (
+    id SERIAL PRIMARY KEY,
+    total_number_of_voters INT NOT NULL,
+    voter_turnout INT NOT NULL,
+    voter_turnoff INT NOT NULL,
+    total_votes_cast INT NOT NULL
+);`;
 
 //  update voting statistics
 `UPDATE votingstats
@@ -60,4 +52,26 @@ SET number_of_votes = 0;
 `UPDATE students
 SET status = false,
     voted = false;
+`;
+
+// -- Insert data into the candidates table without specifying the id
+`-- Insert data into the candidates table without specifying the id
+INSERT INTO candidates (candidate_name, position, number_of_votes)
+VALUES
+    ('Evan Fox', 'SECRETARY', 0),
+    ('Hannah Ivy', 'FINANCIALOFFICER', 0),
+    ('Kyle Long', 'PRO', 0),
+    ('Nina Owen', 'SPORTSSECRETARY', 0),
+    ('Salam Musharifa', 'PRESIDENT', 1),
+    ('Bob Brown', 'AMBASSADOR', 1),
+    ('Charlie Davis', 'WOCOM', 1),
+    ('Jenny King', 'ENTERTAINMENTSECRETARY', 1),
+    ('John Doe', 'PRESIDENT', 1),
+    ('Alice Johnson', 'AMBASSADOR', 1),
+    ('Diana Evans', 'WOCOM', 1),
+    ('Fiona Green', 'SECRETARY', 2),
+    ('George Hill', 'FINANCIALOFFICER', 2),
+    ('Ian Jones', 'ENTERTAINMENTSECRETARY', 1),
+    ('Laura Moore', 'PRO', 2),
+    ('Mark Nelson', 'SPORTSSECRETARY', 2);
 `;
