@@ -5,98 +5,148 @@ module.exports = function (io) {
   const router = express.Router();
 
   router.post('/votes', async (req, res) => {
+    const client = await pool.connect();
     try {
-      // Process votes as before...
+      await client.query('BEGIN'); // Start transaction
 
-      // Extract candidate IDs from the request body
+      // candidate IDs from the request body
       const {
         PRESIDENTCandidateId,
         AMBASSADORCandidateId,
         WOCOMCandidateId,
-        SECRETARYCandidateId,
+        GENERALSECRETARYCandidateId,
         FINANCIALOFFICERCandidateId,
         ENTERTAINMENTSECRETARYCandidateId,
         PROCandidateId,
         SPORTSSECRETARYCandidateId,
       } = req.body;
 
-      // Process votes, ensure handling arrays and empty strings
+      console.log(req.body);
+
+      // Processing votes, handling arrays and empty strings
       const votes = [
         PRESIDENTCandidateId,
         AMBASSADORCandidateId,
         WOCOMCandidateId,
-        SECRETARYCandidateId,
+        GENERALSECRETARYCandidateId,
         FINANCIALOFFICERCandidateId,
         ENTERTAINMENTSECRETARYCandidateId,
         PROCandidateId,
         SPORTSSECRETARYCandidateId,
       ]
-        .map((id) => {
-          if (Array.isArray(id)) {
-            // If id is an array, take the first non-empty string
-            return id.find((item) => item.trim() !== '')?.trim();
-          }
-          return typeof id === 'string' ? id.trim() : null;
-        })
-        .filter((id) => id && !isNaN(id)); // Filter out invalid and empty IDs
+        .map((id) =>
+          Array.isArray(id)
+            ? id.find((item) => item.trim() !== '')?.trim()
+            : typeof id === 'string'
+            ? id.trim()
+            : null
+        )
+        .filter((id) => id && (id === 'skipped' || !isNaN(id))); // valid IDs and "skipped"
 
-      // Check if at least one vote is cast
+      // number of skipped votes
+      const skippedVotes = votes.filter((id) => id === 'skipped').length;
+
+      // all positions have been voted or skipped
       if (votes.length !== 8) {
-        return res.status(400);
+        await client.query('ROLLBACK'); // Rollback transaction on failure
+        return res.status(400).send('All positions must be voted or skipped.');
       }
 
-      // Update the votes for each candidate
-      for (const candidateId of votes) {
-        try {
-          await pool.query(
-            'UPDATE candidates SET number_of_votes = number_of_votes + 1 WHERE id = $1',
-            [parseInt(candidateId, 10)]
-          );
-        } catch (err) {
-          console.error(`Error updating candidate ID ${candidateId}:`, err);
-        }
+      // Check if the student has already voted
+      const { rows: studentRows } = await client.query(
+        'SELECT voted FROM students WHERE id = $1',
+        [parseInt(req.user.id, 10)]
+      );
 
-        if (req.user.id) {
-          try {
-            await pool.query('UPDATE students SET voted = true WHERE id = $1', [
-              parseInt(req.user.id, 10),
-            ]);
-            console.log(
-              `Student ID ${req.user.id} voted status updated to true.`
-            );
-          } catch (err) {
-            console.error(`Error updating student ID ${req.user.id}:`, err);
-          }
-        }
+      if (studentRows.length === 0 || studentRows[0].voted) {
+        await client.query('ROLLBACK'); // Rollback transaction on failure
+        return res.redirect('alreadyVoted');
+      }
+
+      //  votes for each candidate
+      const updateCandidatesQuery = `
+        UPDATE candidates 
+        SET number_of_votes = number_of_votes + 1 
+        WHERE id = ANY($1::int[])
+      `;
+      const candidateIds = votes
+        .filter((id) => id !== 'skipped')
+        .map((id) => parseInt(id, 10));
+      await client.query(updateCandidatesQuery, [candidateIds]);
+
+      // skipped votes in the database
+      if (skippedVotes > 0) {
+        await client.query(
+          'UPDATE votingstats SET skipped_votes = skipped_votes + $1',
+          [skippedVotes]
+        );
+      }
+
+      // student as having voted
+      if (req.user.id) {
+        await client.query('UPDATE students SET voted = true WHERE id = $1', [
+          parseInt(req.user.id, 10),
+        ]);
       }
 
       // Update the voting statistics
-      try {
-        await pool.query(
-          'UPDATE votingstats SET total_votes_cast = total_votes_cast + 1, voter_turnout = voter_turnout + 1, voter_turnoff = total_number_of_voters - voter_turnout'
-        );
-        console.log('Voting statistics updated successfully.');
-      } catch (err) {
-        console.error('Error updating voting statistics:', err);
-      }
+      await client.query(
+        `UPDATE votingstats 
+         SET voter_turnout = voter_turnout + 1;`
+      );
 
-      // After updating the votes in the database, emit the update
+      await client.query(
+        `UPDATE votingstats 
+         SET total_votes_cast = total_votes_cast + 1, 
+             voter_turnoff = total_number_of_voters - voter_turnout`
+      );
+
+      await client.query('COMMIT'); // Commit transaction
+
       const resultsQuery = `
-        SELECT position, candidate_name, number_of_votes
-        FROM candidates
-        ORDER BY position ASC, number_of_votes DESC
+        SELECT 
+          c.position, 
+          c.candidate_name, 
+          c.number_of_votes,
+          vs.total_number_of_voters, 
+          vs.voter_turnout, 
+          vs.voter_turnoff, 
+          vs.total_votes_cast,
+          vs.skipped_votes
+        FROM 
+          candidates c
+        JOIN 
+          votingstats vs ON c.votingstats_id = vs.id
+        ORDER BY 
+          c.position ASC, 
+          c.id ASC
       `;
-      const { rows: results } = await pool.query(resultsQuery);
 
-      // Emit the updated results to all connected clients
+      const { rows: results } = await client.query(resultsQuery);
+
       io.emit('updateResults', results);
 
+      res.setHeader('Surrogate-Control', 'no-store');
+      res.setHeader(
+        'Cache-Control',
+        'no-store, no-cache, must-revalidate, proxy-revalidate'
+      );
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+
       // Send status after voting
-      res.status(200);
+      res.status(201);
     } catch (err) {
       console.error('Error handling vote submission:', err);
+      await client.query('ROLLBACK'); // Rollback transaction on error
       res.status(500).send('An error occurred');
+    } finally {
+      client.release(); // Release client back to the pool
     }
+  });
+
+  router.get('/alreadyVoted', (req, res) => {
+    res.render('alreadyVoted');
   });
 
   return router;

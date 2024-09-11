@@ -2,24 +2,51 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
 
-// Approve user route
+const axios = require('axios');
+
 router.post('/approve-user/:id', async (req, res) => {
   try {
+    const { otp: otpFromUser } = req.body;
     const { id } = req.params;
-    await pool.query('UPDATE students SET status = TRUE WHERE id = $1', [id]);
-    res.redirect('/admin/dashboard');
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
-  }
-});
 
-// Reject user route
-router.post('/reject-user/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    await pool.query('DELETE FROM students WHERE id = $1', [id]);
-    res.redirect('/admin/dashboard');
+    if (otpFromUser) {
+      const result = await pool.query(
+        'SELECT phone_number FROM students WHERE id = $1',
+        [id]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).send('Student not found');
+      }
+
+      const phoneNumber = result.rows[0].phone_number;
+
+      const data = {
+        code: otpFromUser,
+        number: phoneNumber,
+      };
+      const headers = {
+        'api-key': 'Um5XTVJIdm9TQnBVam11RWtHVGw',
+      };
+
+      const response = await axios.post(
+        'https://sms.arkesel.com/api/otp/verify',
+        data,
+        { headers }
+      );
+
+      if (response.data.code === '1100') {
+        await pool.query('UPDATE students SET status = TRUE WHERE id = $1', [
+          id,
+        ]);
+        res.redirect('/admin/dashboard');
+      } else {
+        res.status(400).send('Invalid OTP');
+      }
+    } else {
+      await pool.query('UPDATE students SET status = TRUE WHERE id = $1', [id]);
+      res.redirect('/admin/dashboard');
+    }
   } catch (err) {
     console.error(err);
     res.status(500).send('Server error');
@@ -28,13 +55,30 @@ router.post('/reject-user/:id', async (req, res) => {
 
 router.get('/search', async (req, res) => {
   const searchTerm = req.query.query;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
+
   try {
-    // Query to search students by name (case-insensitive)
     const { rows: pendingStudents } = await pool.query(
-      'SELECT * FROM students WHERE student_name ILIKE $1 AND status = false',
+      'SELECT * FROM students WHERE student_name ILIKE $1 AND status = false LIMIT $2 OFFSET $3',
+      [`%${searchTerm}%`, limit, offset]
+    );
+
+    const totalResult = await pool.query(
+      'SELECT COUNT(*) FROM students WHERE student_name ILIKE $1 AND status = false',
       [`%${searchTerm}%`]
     );
-    res.render('adminDashboard', { pendingStudents });
+    const totalStudents = parseInt(totalResult.rows[0].count);
+    const totalPages = Math.ceil(totalStudents / limit);
+
+    res.render('adminDashboard', {
+      pendingStudents,
+      currentPage: page,
+      totalPages: totalPages,
+      limit: limit,
+      searchQuery: searchTerm,
+    });
   } catch (err) {
     console.error('Error searching for students:', err);
     res.status(500).send('Server Error');

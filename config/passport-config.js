@@ -1,26 +1,28 @@
 const LocalStrategy = require('passport-local').Strategy;
+const CustomStrategy = require('passport-custom').Strategy;
 const pool = require('../db/pool');
 
 const initialize = (passport) => {
   // Student authentication
   passport.use(
-    'student',
-    new LocalStrategy(async (username, password, done) => {
+    'custom',
+    new CustomStrategy(async (req, done) => {
+      const { username } = req.body;
+
       try {
-        // Query for the student with the given index number and name
+        // Query for the student with the given name or index number
         const { rows } = await pool.query(
-          'SELECT * FROM students WHERE "student_name" = $1 AND "index_number" = $2;',
-          [username, password]
+          'SELECT * FROM students WHERE "student_name" = $1 OR "index_number" = $1;',
+          [username]
         );
         const user = rows[0];
         if (!user) {
-          return done(null, false, { message: 'Invalid index number or name' });
+          return done(null, false, {
+            message: 'Incorrect name or index number',
+          });
         }
 
-        if (user.index_number !== password) {
-          return done(null, false, { message: 'Incorrect password' });
-        }
-
+        // Validate the student's status and voting status
         if (user.voted === true) {
           return done(null, false, { message: 'Student has voted already' });
         }

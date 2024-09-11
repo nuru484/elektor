@@ -6,24 +6,53 @@ router.get('/resultsPage', async (req, res) => {
   try {
     // Fetch the voting results ordered by position and number of votes
     const resultsQuery = `
-      SELECT position, candidate_name, number_of_votes
-      FROM candidates
-      ORDER BY position ASC, number_of_votes DESC
+    SELECT position, candidate_name, number_of_votes
+    FROM candidates
+    ORDER BY id ASC;
+
     `;
     const { rows: results } = await pool.query(resultsQuery);
 
     // Fetch the voting statistics
-    const statsQuery = `
-      SELECT total_number_of_voters, voter_turnout, voter_turnoff, total_votes_cast
-      FROM votingstats
-      WHERE id = 2
-    `;
+    const statsQuery = `SELECT * FROM votingstats WHERE id = 2`;
     const { rows: stats } = await pool.query(statsQuery);
-    const votingStats = stats[0]; // Assuming there's only one row with id = 2
+    const votingStats = stats[0];
 
-    // Render the results page with the results and voting stats
+    // Define the custom order of positions
+    const positionOrder = [
+      'PRESIDENT',
+      'AMBASSADOR',
+      'GENERAL SECRETARY',
+      'WOCOM',
+      'FINANCIAL OFFICER',
+      'PRO',
+      'ENTERTAINMENT SECRETARY',
+      'SPORTS SECRETARY',
+    ];
+
+    results.sort((a, b) => {
+      return (
+        positionOrder.indexOf(a.position) - positionOrder.indexOf(b.position)
+      );
+    });
+
     res.render('results', {
       results,
+      votingStats,
+    });
+  } catch (err) {
+    console.error('Error fetching results:', err);
+    res.status(500).send('An error occurred');
+  }
+});
+
+router.get('/VotingRoomResultsPage', async (req, res) => {
+  try {
+    const statsQuery = `SELECT * FROM votingstats WHERE id = 2`;
+    const { rows: stats } = await pool.query(statsQuery);
+    const votingStats = stats[0];
+
+    res.render('resultsForVotingRoom', {
       votingStats,
     });
   } catch (err) {
