@@ -99,7 +99,7 @@ router.post('/request-otp/:studentId', async (req, res) => {
     };
 
     const headers = {
-      'api-key': 'Um5XTVJIdm9TQnBVam11RWtHVGw',
+      'api-key': process.env.ARKISEL_API_KEY,
     };
 
     await axios.post('https://sms.arkesel.com/api/otp/generate', data, {

@@ -3,9 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "node --watch --env-file=.env server",
-    "test": "node --watch --env-file=.env app",
-    "server": "node db/populatedb postgres://nurudeen:0553997465@localhost:5432/nurudeen"
+    "dev": "node --watch --env-file=.env server"
   },
   "keywords": [],
   "author": "",
