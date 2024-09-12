@@ -24,3 +24,8 @@ body {
 .btn:hover {
   background-color: #0056b3;
 }
+
+h1 {
+  margin: 0;
+  padding: 0;
+}
