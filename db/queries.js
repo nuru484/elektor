@@ -21,3 +21,7 @@ SET number_of_votes = 0;
 SET status = false,
     voted = false;
 `;
+
+`DROP TABLE admin, students, candidates, votingstats;`;
+`SELECT * FROM votingstats;`;
+`SELECT * FROM students;``SELECT * FROM candidates;`;

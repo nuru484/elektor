@@ -9,6 +9,9 @@ const { Server } = require('socket.io');
 const { createAdapter } = require('@socket.io/redis-adapter');
 const initializePassport = require('./config/passport-config');
 
+const { initializeDatabase } = require('./populatedb');
+const { updateDatabaseFromExcel } = require('./populatedb');
+
 const adminRouter = require('./routes/adminRoutes');
 const userRouter = require('./routes/userRoutes');
 const indexRouter = require('./routes/index');
@@ -67,8 +70,22 @@ io.on('connection', (socket) => {
   });
 });
 
-const port = process.env.PORT || 3000;
+(async () => {
+  try {
+    console.log('Initializing the database...');
 
-server.listen(port, () => {
-  console.log(`App listening on localhost port ${port}`);
-});
+    await initializeDatabase();
+    await updateDatabaseFromExcel();
+
+    console.log('Database initialized successfully.');
+
+    const port = process.env.PORT || 3000;
+
+    server.listen(port, () => {
+      console.log(`App listening on localhost port ${port}`);
+    });
+  } catch (error) {
+    console.error('Failed to initialize the database:', error);
+    process.exit(1);
+  }
+})();

@@ -50,7 +50,9 @@ router.get('/dashboard', async (req, res) => {
         'SELECT COUNT(*) FROM students WHERE status = $1',
         [false]
       );
+
       const totalStudents = parseInt(totalResult.rows[0].count);
+
       const totalPages = Math.ceil(totalStudents / limit);
 
       res.setHeader(

@@ -13,9 +13,19 @@ router.get('/resultsPage', async (req, res) => {
     `;
     const { rows: results } = await pool.query(resultsQuery);
 
+    const votingStatsQuery =
+      'SELECT id FROM votingstats ORDER BY id ASC LIMIT 1';
+    const votingStatsResult = await pool.query(votingStatsQuery);
+
+    if (votingStatsResult.rows.length === 0) {
+      throw new Error('No votingstats rows found.');
+    }
+
+    const votingStatsId = votingStatsResult.rows[0].id;
+
     // Fetch the voting statistics
-    const statsQuery = `SELECT * FROM votingstats WHERE id = 2`;
-    const { rows: stats } = await pool.query(statsQuery);
+    const statsQuery = `SELECT * FROM votingstats WHERE id = $1`;
+    const { rows: stats } = await pool.query(statsQuery, [votingStatsId]);
     const votingStats = stats[0];
 
     // Define the custom order of positions
