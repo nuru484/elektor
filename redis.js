@@ -3,7 +3,9 @@ const { createClient } = require('redis');
 const RedisStore = require('connect-redis').default;
 
 const redisClient = createClient({
-  url: process.env.REDIS_URL,
+  url: `redis://${
+    process.env.REDIS_PASSWORD ? process.env.REDIS_PASSWORD + '@' : ''
+  }${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
 });
 
 const sessionStore = new RedisStore({ client: redisClient });
