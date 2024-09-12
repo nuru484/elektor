@@ -1,4 +1,4 @@
-/* Reset some default styling */
+/* Default styling reset */
 body {
   margin: 0;
   padding: 0;
@@ -15,8 +15,13 @@ h1 {
   margin-top: 20px;
 }
 
+.admin-actions {
+  display: flex;
+}
+
 form {
   display: flex;
+  justify-content: center;
   align-items: center;
   gap: 10px;
   margin: 20px 0;
@@ -29,7 +34,8 @@ input[type='text'] {
   width: 200px;
 }
 
-button[type='submit'] {
+button[type='submit'],
+button[type='button'] {
   color: #fff;
   border: none;
   padding: 10px 20px;
@@ -38,29 +44,22 @@ button[type='submit'] {
   font-size: 16px;
   transition: background-color 0.3s;
 }
-
-form button[type='submit'].search {
-  background-color: #24a440;
+form button[type='button'].otp-request {
+  background-color: #007bff;
 }
 
-form button[type='submit'].search:hover {
-  background-color: #218838;
+form button[type='button'].otp-request:hover {
+  background-color: #008bff;
 }
 
+form button[type='submit'].search,
 form button[type='submit'].approve {
   background-color: #24a440;
 }
 
+form button[type='submit'].search:hover,
 form button[type='submit'].approve:hover {
   background-color: #218838;
-}
-
-form button[type='submit'].reject {
-  background-color: #dc3545;
-}
-
-form button[type='submit'].reject:hover {
-  background-color: #c82333;
 }
 
 h2 {
@@ -83,10 +82,28 @@ thead {
   color: #fff;
 }
 
+.tr {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+.admin-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.name-column {
+  /* display: flex;
+  flex-direction: row;
+  gap: 20px; */
+}
+
 th,
 td {
   padding: 10px;
-  text-align: center; /* Center-align text in table cells */
+  text-align: center;
   border-bottom: 1px solid #ddd;
 }
 
@@ -96,4 +113,172 @@ th {
 
 tbody tr:hover {
   background-color: #f1f1f1;
+}
+
+/* Container for profile photo */
+.profile-photo-container {
+  width: 50px;
+  height: 50px;
+  overflow: hidden;
+}
+
+/* Profile photo styles */
+.profile-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 5px;
+  object-fit: cover;
+  transition: transform 0.3s ease-in-out, z-index 0.3s;
+}
+
+.profile-photo-container:hover .profile-photo {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 340px;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+}
+
+/* Pagination container */
+nav[aria-label='Page navigation'] {
+  text-align: center;
+  margin: 20px 0;
+}
+
+/* Pagination list */
+ul.pagination {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+/* Pagination list item */
+ul.pagination .page-item {
+  margin: 0 2px;
+}
+
+/* Pagination link */
+ul.pagination .page-link {
+  display: block;
+  padding: 10px 20px;
+  text-decoration: none;
+  color: #fff;
+  background-color: #007bff;
+  border: 1px solid #007bff;
+  border-radius: 4px;
+  transition: background-color 0.3s, color 0.3s;
+  font-size: 16px;
+}
+
+/* Hover effect for pagination links */
+ul.pagination .page-link:hover {
+  background-color: #0056b3;
+  color: #fff;
+}
+
+/* Active page link styling */
+ul.pagination .page-item.active .page-link {
+  background-color: #0056b3;
+  color: #fff;
+  border-color: #0056b3;
+}
+
+/* Disabled state */
+ul.pagination .page-item.disabled .page-link {
+  color: #ccc;
+  pointer-events: none;
+  cursor: default;
+  background-color: #f1f1f1;
+  border-color: #ddd;
+}
+
+/* Dots styling */
+ul.pagination .page-item .page-link {
+  padding: 10px;
+  font-size: 18px;
+}
+
+/* Styling for dots */
+ul.pagination .page-item .page-link {
+  background-color: #f1f1f1;
+  color: #333;
+}
+
+.logout-button {
+  background-color: #dc3545;
+  color: #ffffff;
+  width: 150px;
+  max-width: 300px;
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s, box-shadow 0.3s;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+.logout-button:hover {
+  background-color: #c82333;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.modal-content {
+  background-color: white;
+  margin: 15% auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 30%;
+  text-align: center;
+}
+
+.modal-close {
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.confirm-button,
+.cancel-button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.confirm-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+}
+
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+  border: none;
+}
+
+.modal-close:hover,
+.modal-close:focus {
+  color: red;
+  cursor: pointer;
 }
