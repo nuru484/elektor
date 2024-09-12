@@ -5,13 +5,18 @@ const pool = require('../db/pool');
 
 // Route for rendering the index page
 router.get('/', (req, res) => {
+  res.render('index');
+});
+
+// Route for rendering login page get
+router.get('/userLogin', (req, res) => {
   const errors = req.session.errors || [];
   req.session.errors = [];
 
-  res.render('index', { user: req.user, errors });
+  res.render('userLogin', { user: req.user, errors });
 });
 
-// Route for user login
+// Route for user login post
 router.post('/userLogin', (req, res, next) => {
   passport.authenticate('custom', (err, user, info) => {
     if (err) {
@@ -41,7 +46,7 @@ router.post('/userLogin', (req, res, next) => {
         });
       }
 
-      return res.render('index', { errors });
+      return res.render('userLogin', { errors });
     }
 
     req.logIn(user, (err) => {
@@ -111,7 +116,7 @@ router.get('/votes', async (req, res) => {
       return res.status(500).json({ error: 'Failed to fetch candidates.' });
     }
   } else {
-    res.redirect('/');
+    res.redirect('/userLogin');
   }
 });
 
@@ -121,7 +126,7 @@ router.get('/logout', (req, res) => {
     if (err) {
       return res.redirect('/');
     }
-    res.redirect('/');
+    res.redirect('/userLogin');
   });
 });
 

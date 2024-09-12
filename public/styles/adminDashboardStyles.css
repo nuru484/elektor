@@ -94,12 +94,6 @@ thead {
   gap: 10px;
 }
 
-.name-column {
-  /* display: flex;
-  flex-direction: row;
-  gap: 20px; */
-}
-
 th,
 td {
   padding: 10px;

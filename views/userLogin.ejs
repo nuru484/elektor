@@ -4,45 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/styles/logins.css" />
-    <title>Admin LogIn</title>
+    <title>Login</title>
   </head>
   <body>
-    <h1>Admin LogIn</h1>
+    <h1>Student LogIn</h1>
 
-    <!-- Display errors if any -->
     <% if (errors && errors.length > 0) { %>
     <ul>
       <% errors.forEach(function(error) { %>
       <li style="color: red"><%= error.message %></li>
-      <% }); %>
+      <% if (error.sound) { %>
+      <audio id="errorSound" src="/sound/alert.mp3"></audio>
+      <% } %> <% }); %>
     </ul>
     <% } %>
 
-    <form action="/admin/login" method="POST">
+    <form action="/userLogin" method="POST">
       <div>
-        <label for="name">Name</label>
+        <label for="identifier">Name or Index Number</label>
         <input
-          type="text"
-          id="username"
+          id="identifier"
           name="username"
-          placeholder="username"
-          required
-        />
-      </div>
-
-      <div>
-        <label for="password">Password</label>
-        <input
+          placeholder="Enter your name or index number"
           type="text"
-          id="password"
-          name="password"
-          placeholder="password"
+          class="identifier"
           required
         />
       </div>
-
       <button type="submit">Log In</button>
       <a href="/" class="btn">Back To Dashboard</a>
     </form>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        if (document.getElementById('errorSound')) {
+          document.getElementById('errorSound').play();
+        }
+      });
+    </script>
   </body>
 </html>

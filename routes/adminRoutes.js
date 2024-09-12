@@ -4,6 +4,11 @@ const passport = require('passport');
 const pool = require('../db/pool');
 const axios = require('axios');
 
+// Admin Login Page Route
+router.get('/login', (req, res) => {
+  res.render('adminLogIn', { errors: [] });
+});
+
 // Admin Login Route
 router.post('/login', (req, res, next) => {
   passport.authenticate('admin', (err, user, info) => {
@@ -112,11 +117,6 @@ router.post('/request-otp/:studentId', async (req, res) => {
   } catch (err) {
     return res.status(500).json({ error: 'Failed to generate or send OTP.' });
   }
-});
-
-// Admin Login Page Route
-router.get('/login', (req, res) => {
-  res.render('adminLogIn', { errors: [] });
 });
 
 // Admin Logout Route

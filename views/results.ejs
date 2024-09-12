@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/styles/resultsStyles.css" />
+    <link rel="stylesheet" href="/styles/logins.css" />
     <title>Strong Room Voting Results</title>
   </head>
   <body>
@@ -13,6 +14,7 @@
       <!-- Voting Statistics -->
       <div class="stats">
         <h2>Voting Statistics</h2>
+
         <p>
           Total Registered Voters: <%= votingStats.total_number_of_voters %>
         </p>
@@ -167,5 +169,6 @@
         resultsContainer.appendChild(tableContainer);
       });
     </script>
+    <div class="back-home"><a href="/" class="btn">Back To Dashboard</a></div>
   </body>
 </html>

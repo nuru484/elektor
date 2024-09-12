@@ -133,7 +133,7 @@ document
   .addEventListener('click', function () {
     // Close the modal and redirect or do other actions if needed
     document.getElementById('voteCountedModal').style.display = 'none';
-    window.location.href = '/'; // Redirect to homepage or another page after closing
+    window.location.href = '/userLogin'; // Redirect to homepage or another page after closing
   });
 
 document
@@ -146,6 +146,6 @@ document
 window.onload = function () {
   if (performance.navigation.type === 2) {
     // Redirect to login page if user navigates back
-    window.location.href = '/';
+    window.location.href = '/userLogin';
   }
 };

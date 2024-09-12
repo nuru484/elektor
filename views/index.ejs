@@ -3,43 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard</title>
     <link rel="stylesheet" href="/styles/index.css" />
-    <title>Login</title>
   </head>
   <body>
-    <h1>Student LogIn</h1>
-
-    <% if (errors && errors.length > 0) { %>
-    <ul>
-      <% errors.forEach(function(error) { %>
-      <li style="color: red"><%= error.message %></li>
-      <% if (error.sound) { %>
-      <audio id="errorSound" src="/sound/alert.mp3"></audio>
-      <% } %> <% }); %>
-    </ul>
-    <% } %>
-
-    <form action="/userLogin" method="POST">
-      <div>
-        <label for="identifier">Name or Index Number</label>
-        <input
-          id="identifier"
-          name="username"
-          placeholder="Enter your name or index number"
-          type="text"
-          class="identifier"
-          required
-        />
-      </div>
-      <button type="submit">Log In</button>
-    </form>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        if (document.getElementById('errorSound')) {
-          document.getElementById('errorSound').play();
-        }
-      });
-    </script>
+    <div class="container">
+      <h1>Afatech Voting System Dashboard</h1>
+      <a href="/userLogin" class="btn">Visit User Login</a>
+      <a href="/admin/login" class="btn">Visit Admin Login</a>
+      <a href="/results/resultsPage" class="btn">Visit Results Page</a>
+      <a href="/results/VotingRoomResultsPage" class="btn"
+        >Visit Voting Room Results</a
+      >
+    </div>
   </body>
 </html>
