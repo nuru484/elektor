@@ -3,6 +3,7 @@ const router = express.Router();
 const passport = require('passport');
 const pool = require('../db/pool');
 
+// Route for rendering the index page
 router.get('/', (req, res) => {
   const errors = req.session.errors || [];
   req.session.errors = [];
@@ -10,6 +11,7 @@ router.get('/', (req, res) => {
   res.render('index', { user: req.user, errors });
 });
 
+// Route for user login
 router.post('/userLogin', (req, res, next) => {
   passport.authenticate('custom', (err, user, info) => {
     if (err) {
@@ -24,7 +26,6 @@ router.post('/userLogin', (req, res, next) => {
           sound: true,
         });
       }
-
       if (info.message.includes('voted already')) {
         errors.push({
           field: 'voted',
@@ -52,6 +53,7 @@ router.post('/userLogin', (req, res, next) => {
   })(req, res, next);
 });
 
+// Route for rendering the votes page
 router.get('/votes', async (req, res) => {
   if (req.isAuthenticated() && req.user.status === true) {
     const student = req.user;
@@ -63,7 +65,7 @@ router.get('/votes', async (req, res) => {
       );
       const candidates = candidatesResult.rows;
 
-      //  the order of positions
+      // Order of positions
       const positionOrder = [
         'PRESIDENT',
         'AMBASSADOR',
@@ -84,7 +86,7 @@ router.get('/votes', async (req, res) => {
         return acc;
       }, {});
 
-      // candidates by position order
+      // Candidates by position order
       const sortedGroupedCandidates = positionOrder.reduce((acc, position) => {
         if (groupedCandidates[position]) {
           acc[position] = groupedCandidates[position];
@@ -106,15 +108,14 @@ router.get('/votes', async (req, res) => {
         groupedCandidates: sortedGroupedCandidates,
       });
     } catch (err) {
-      console.error('Error fetching candidates:', err); // Log errors for debugging
-
-      res.status(500).json({ error: 'Failed to fetch candidates.' });
+      return res.status(500).json({ error: 'Failed to fetch candidates.' });
     }
   } else {
     res.redirect('/');
   }
 });
 
+// Route for logging out
 router.get('/logout', (req, res) => {
   req.logout((err) => {
     if (err) {

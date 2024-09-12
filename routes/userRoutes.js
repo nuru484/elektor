@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
-
 const axios = require('axios');
 
+// Route for approving a user
 router.post('/approve-user/:id', async (req, res) => {
   try {
     const { otp: otpFromUser } = req.body;
@@ -26,7 +26,7 @@ router.post('/approve-user/:id', async (req, res) => {
         number: phoneNumber,
       };
       const headers = {
-        'api-key': 'Um5XTVJIdm9TQnBVam11RWtHVGw',
+        'api-key': process.env.ARKISEL_API_KEY, // Use environment variable for API key
       };
 
       const response = await axios.post(
@@ -39,20 +39,20 @@ router.post('/approve-user/:id', async (req, res) => {
         await pool.query('UPDATE students SET status = TRUE WHERE id = $1', [
           id,
         ]);
-        res.redirect('/admin/dashboard');
+        return res.redirect('/admin/dashboard');
       } else {
-        res.status(400).send('Invalid OTP');
+        return res.status(400).send('Invalid OTP');
       }
     } else {
       await pool.query('UPDATE students SET status = TRUE WHERE id = $1', [id]);
-      res.redirect('/admin/dashboard');
+      return res.redirect('/admin/dashboard');
     }
   } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
+    return res.status(500).send('Server error');
   }
 });
 
+// Route for searching students
 router.get('/search', async (req, res) => {
   const searchTerm = req.query.query;
   const page = parseInt(req.query.page) || 1;
@@ -80,8 +80,7 @@ router.get('/search', async (req, res) => {
       searchQuery: searchTerm,
     });
   } catch (err) {
-    console.error('Error searching for students:', err);
-    res.status(500).send('Server Error');
+    return res.status(500).send('Server Error');
   }
 });
 

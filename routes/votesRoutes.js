@@ -9,7 +9,7 @@ module.exports = function (io) {
     try {
       await client.query('BEGIN'); // Start transaction
 
-      // candidate IDs from the request body
+      // Extract candidate IDs from request body
       const {
         PRESIDENTCandidateId,
         AMBASSADORCandidateId,
@@ -21,9 +21,7 @@ module.exports = function (io) {
         SPORTSSECRETARYCandidateId,
       } = req.body;
 
-      console.log(req.body);
-
-      // Processing votes, handling arrays and empty strings
+      // Process votes, handling arrays and empty strings
       const votes = [
         PRESIDENTCandidateId,
         AMBASSADORCandidateId,
@@ -41,12 +39,12 @@ module.exports = function (io) {
             ? id.trim()
             : null
         )
-        .filter((id) => id && (id === 'skipped' || !isNaN(id))); // valid IDs and "skipped"
+        .filter((id) => id && (id === 'skipped' || !isNaN(id))); // Valid IDs and "skipped"
 
-      // number of skipped votes
+      // Number of skipped votes
       const skippedVotes = votes.filter((id) => id === 'skipped').length;
 
-      // all positions have been voted or skipped
+      // Ensure all positions have been voted or skipped
       if (votes.length !== 8) {
         await client.query('ROLLBACK'); // Rollback transaction on failure
         return res.status(400).send('All positions must be voted or skipped.');
@@ -60,10 +58,10 @@ module.exports = function (io) {
 
       if (studentRows.length === 0 || studentRows[0].voted) {
         await client.query('ROLLBACK'); // Rollback transaction on failure
-        return res.redirect('alreadyVoted');
+        return res.redirect('/alreadyVoted');
       }
 
-      //  votes for each candidate
+      // Update votes for each candidate
       const updateCandidatesQuery = `
         UPDATE candidates 
         SET number_of_votes = number_of_votes + 1 
@@ -74,7 +72,7 @@ module.exports = function (io) {
         .map((id) => parseInt(id, 10));
       await client.query(updateCandidatesQuery, [candidateIds]);
 
-      // skipped votes in the database
+      // Update skipped votes in the database
       if (skippedVotes > 0) {
         await client.query(
           'UPDATE votingstats SET skipped_votes = skipped_votes + $1',
@@ -82,14 +80,14 @@ module.exports = function (io) {
         );
       }
 
-      // student as having voted
+      // Mark student as having voted
       if (req.user.id) {
         await client.query('UPDATE students SET voted = true WHERE id = $1', [
           parseInt(req.user.id, 10),
         ]);
       }
 
-      // Update the voting statistics
+      // Update voting statistics
       await client.query(
         `UPDATE votingstats 
          SET voter_turnout = voter_turnout + 1;`
@@ -103,6 +101,7 @@ module.exports = function (io) {
 
       await client.query('COMMIT'); // Commit transaction
 
+      // Fetch updated results
       const resultsQuery = `
         SELECT 
           c.position, 
@@ -121,11 +120,11 @@ module.exports = function (io) {
           c.position ASC, 
           c.id ASC
       `;
-
       const { rows: results } = await client.query(resultsQuery);
 
       io.emit('updateResults', results);
 
+      // Set headers to prevent caching
       res.setHeader('Surrogate-Control', 'no-store');
       res.setHeader(
         'Cache-Control',
@@ -137,7 +136,6 @@ module.exports = function (io) {
       // Send status after voting
       res.status(201);
     } catch (err) {
-      console.error('Error handling vote submission:', err);
       await client.query('ROLLBACK'); // Rollback transaction on error
       res.status(500).send('An error occurred');
     } finally {

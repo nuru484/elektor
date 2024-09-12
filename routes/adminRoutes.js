@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const passport = require('passport');
 const pool = require('../db/pool');
+const axios = require('axios');
 
 // Admin Login Route
 router.post('/login', (req, res, next) => {
@@ -67,8 +68,9 @@ router.get('/dashboard', async (req, res) => {
         limit: limit,
       });
     } catch (err) {
-      console.error('Error fetching pending students:', err);
-      res.status(500).json({ error: 'Failed to fetch pending students.' });
+      return res
+        .status(500)
+        .json({ error: 'Failed to fetch pending students.' });
     }
   } else {
     res.redirect('/admin/login');
@@ -76,8 +78,6 @@ router.get('/dashboard', async (req, res) => {
 });
 
 // Route to Request OTP
-const axios = require('axios');
-
 router.post('/request-otp/:studentId', async (req, res) => {
   const studentId = req.params.studentId;
 
@@ -108,8 +108,7 @@ router.post('/request-otp/:studentId', async (req, res) => {
 
     res.redirect('/admin/dashboard');
   } catch (err) {
-    console.error('Error generating or sending OTP:', err);
-    res.status(500).json({ error: 'Failed to generate or send OTP.' });
+    return res.status(500).json({ error: 'Failed to generate or send OTP.' });
   }
 });
 

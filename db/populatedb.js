@@ -1,14 +1,15 @@
 const pool = require('../db/pool');
 const ExcelJS = require('exceljs');
 
-// Read the Excel file
-const workbook = new ExcelJS.Workbook();
-workbook.xlsx
-  .readFile('public/students_data.xlsx')
-  .then(() => {
+async function updateDatabaseFromExcel() {
+  const workbook = new ExcelJS.Workbook();
+  try {
+    // Read the Excel file
+    await workbook.xlsx.readFile('public/students_data.xlsx');
     const worksheet = workbook.getWorksheet(1); // Assuming data is in the first sheet
     const studentsData = [];
 
+    // Parse the worksheet data
     worksheet.eachRow({ includeEmpty: true }, (row, rowNumber) => {
       if (rowNumber === 1) return; // Skip header row
 
@@ -25,53 +26,45 @@ workbook.xlsx
       studentsData.push(student);
     });
 
-    return studentsData;
-  })
-  .then(async (studentsData) => {
-    try {
-      for (let student of studentsData) {
-        // Destructure student object to get the properties
-        const {
-          id,
-          student_name,
-          index_number,
-          status,
-          voted,
-          profile_photo,
-          phone_number,
-        } = student;
-
-        // Write your SQL query for updating the database
-        const query = `
-        INSERT INTO students (id, student_name, index_number, status, voted, profile_photo, phone_number)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
-        ON CONFLICT (id) DO UPDATE SET
-            student_name = EXCLUDED.student_name,
-            index_number = EXCLUDED.index_number,
-            status = EXCLUDED.status,
-            voted = EXCLUDED.voted,
-            profile_photo = EXCLUDED.profile_photo,
-            phone_number =EXCLUDED.phone_number;
+    // Define the query for updating the database
+    const query = `
+      INSERT INTO students (id, student_name, index_number, status, voted, profile_photo, phone_number)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      ON CONFLICT (id) DO UPDATE SET
+          student_name = EXCLUDED.student_name,
+          index_number = EXCLUDED.index_number,
+          status = EXCLUDED.status,
+          voted = EXCLUDED.voted,
+          profile_photo = EXCLUDED.profile_photo,
+          phone_number = EXCLUDED.phone_number;
     `;
 
-        await pool.query(query, [
-          id,
-          student_name,
-          index_number,
-          status,
-          voted,
-          profile_photo,
-          phone_number,
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN'); // Start transaction
+
+      for (let student of studentsData) {
+        await client.query(query, [
+          student.id,
+          student.student_name,
+          student.index_number,
+          student.status,
+          student.voted,
+          student.profile_photo,
+          student.phone_number,
         ]);
       }
 
-      console.log('Database update complete!');
-    } catch (err) {
-      console.error('Error updating database:', err);
+      await client.query('COMMIT'); // Commit transaction
+    } catch (dbError) {
+      await client.query('ROLLBACK'); // Rollback transaction on error
+      console.error('Database error:', dbError.message);
     } finally {
-      console.log('updated');
+      client.release(); // Release client back to the pool
     }
-  })
-  .catch((err) => {
-    console.error('Error reading Excel file:', err);
-  });
+  } catch (fileError) {
+    console.error('Error reading Excel file:', fileError.message);
+  }
+}
+
+updateDatabaseFromExcel();

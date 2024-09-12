@@ -13,27 +13,36 @@ document.addEventListener('DOMContentLoaded', function () {
         targetForm = button.closest('form');
         isOtpRequest = button.classList.contains('otp-request');
 
-        document.getElementById('confirmation-modal').style.display = 'block';
+        const modal = document.getElementById('confirmation-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalMessage = document.getElementById('modal-message');
 
-        document.getElementById('modal-title').textContent = isOtpRequest
-          ? 'Request OTP'
-          : 'Approve Student';
-        document.getElementById(
-          'modal-message'
-        ).textContent = `Are you sure you want to ${
-          isOtpRequest ? 'request OTP for' : 'approve'
-        } this student?`;
+        if (modal && modalTitle && modalMessage) {
+          modal.style.display = 'block';
+          modalTitle.textContent = isOtpRequest
+            ? 'Request OTP'
+            : 'Approve Student';
+          modalMessage.textContent = `Are you sure you want to ${
+            isOtpRequest ? 'request OTP for' : 'approve'
+          } this student?`;
+        }
       });
     });
 
   document.querySelector('.modal-close').addEventListener('click', function () {
-    document.getElementById('confirmation-modal').style.display = 'none';
+    const modal = document.getElementById('confirmation-modal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
   });
 
   document
     .getElementById('modal-cancel')
     .addEventListener('click', function () {
-      document.getElementById('confirmation-modal').style.display = 'none';
+      const modal = document.getElementById('confirmation-modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
     });
 
   document
@@ -41,7 +50,7 @@ document.addEventListener('DOMContentLoaded', function () {
     .addEventListener('click', function () {
       if (targetForm) {
         if (isOtpRequest) {
-          var formData = new FormData(targetForm);
+          const formData = new FormData(targetForm);
 
           fetch(targetForm.action, {
             method: 'POST',
@@ -54,17 +63,18 @@ document.addEventListener('DOMContentLoaded', function () {
               return response.text();
             })
             .then((data) => {
-              var studentId = targetForm
+              const studentId = targetForm
                 .querySelector('button.otp-request')
                 .getAttribute('data-student-id');
-              var otpInput = document.querySelector(`#otp-input-${studentId}`);
+              const otpInput = document.querySelector(
+                `#otp-input-${studentId}`
+              );
 
               if (otpInput) {
                 otpInput.style.display = 'inline';
               }
             })
-            .catch((error) => {
-              console.error('Error requesting OTP:', error);
+            .catch(() => {
               alert('Failed to request OTP.');
             });
         } else {
@@ -72,8 +82,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       }
 
-      document.getElementById('confirmation-modal').style.display = 'none';
+      const modal = document.getElementById('confirmation-modal');
+      if (modal) {
+        modal.style.display = 'none';
+      }
     });
 });
-
-// window.history.replaceState(null, null, window.location.href);

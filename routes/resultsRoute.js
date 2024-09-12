@@ -2,14 +2,14 @@ const express = require('express');
 const router = express.Router();
 const pool = require('../db/pool');
 
+// Route for rendering the results page
 router.get('/resultsPage', async (req, res) => {
   try {
     // Fetch the voting results ordered by position and number of votes
     const resultsQuery = `
-    SELECT position, candidate_name, number_of_votes
-    FROM candidates
-    ORDER BY id ASC;
-
+      SELECT position, candidate_name, number_of_votes
+      FROM candidates
+      ORDER BY id ASC;
     `;
     const { rows: results } = await pool.query(resultsQuery);
 
@@ -41,11 +41,11 @@ router.get('/resultsPage', async (req, res) => {
       votingStats,
     });
   } catch (err) {
-    console.error('Error fetching results:', err);
     res.status(500).send('An error occurred');
   }
 });
 
+// Route for rendering results for the voting room
 router.get('/VotingRoomResultsPage', async (req, res) => {
   try {
     const statsQuery = `SELECT * FROM votingstats WHERE id = 2`;
@@ -56,7 +56,6 @@ router.get('/VotingRoomResultsPage', async (req, res) => {
       votingStats,
     });
   } catch (err) {
-    console.error('Error fetching results:', err);
     res.status(500).send('An error occurred');
   }
 });
