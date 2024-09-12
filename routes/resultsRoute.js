@@ -23,6 +23,10 @@ router.get('/resultsPage', async (req, res) => {
 
     const votingStatsId = votingStatsResult.rows[0].id;
 
+    console.log(`The voting stats ID: ${votingStatsId}`);
+
+    console.log(`The voting stats ID: STRING`);
+
     // Fetch the voting statistics
     const statsQuery = `SELECT * FROM votingstats WHERE id = $1`;
     const { rows: stats } = await pool.query(statsQuery, [votingStatsId]);
@@ -51,14 +55,14 @@ router.get('/resultsPage', async (req, res) => {
       votingStats,
     });
   } catch (err) {
-    res.status(500).send('An error occurred');
+    res.status(500).send('An error occurred during results page display');
   }
 });
 
 // Route for rendering results for the voting room
 router.get('/VotingRoomResultsPage', async (req, res) => {
   try {
-    const statsQuery = `SELECT * FROM votingstats WHERE id = 2`;
+    const statsQuery = `SELECT * FROM votingstats WHERE id = 1`;
     const { rows: stats } = await pool.query(statsQuery);
     const votingStats = stats[0];
 
@@ -66,7 +70,7 @@ router.get('/VotingRoomResultsPage', async (req, res) => {
       votingStats,
     });
   } catch (err) {
-    res.status(500).send('An error occurred');
+    res.status(500).send('An error occurred during votingRoom results display');
   }
 });
 

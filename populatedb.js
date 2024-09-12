@@ -14,8 +14,8 @@ const createVotingStatsTableSQL = `
   CREATE TABLE IF NOT EXISTS votingstats (
     id SERIAL PRIMARY KEY,
     total_number_of_voters INT DEFAULT 0,
-    voter_turnout NUMERIC(5, 2) DEFAULT 0,
-    voter_turnoff NUMERIC(5, 2) DEFAULT 0,
+    voter_turnout INT DEFAULT 0,
+    voter_turnoff INT DEFAULT 0,
     total_votes_cast INT DEFAULT 0,
     skipped_votes INT DEFAULT 0
 );`;
@@ -118,8 +118,11 @@ async function updateDatabaseFromExcel() {
     const result = await pool.query(getTotalNumberOfStudents);
     const totalRegisteredVoters = result.rows[0].count;
 
-    const insertVotingStatsSQL =
-      'INSERT INTO votingstats (total_number_of_voters) VALUES ($1)';
+    const insertVotingStatsSQL = `INSERT INTO votingstats (id, total_number_of_voters)
+          VALUES (1, $1)
+          ON CONFLICT (id)
+          DO UPDATE SET total_number_of_voters = EXCLUDED.total_number_of_voters;
+`;
     await pool.query(insertVotingStatsSQL, [totalRegisteredVoters]);
 
     // PART 2: Read and update candidates data
