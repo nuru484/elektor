@@ -276,3 +276,63 @@ ul.pagination .page-item .page-link {
   color: red;
   cursor: pointer;
 }
+
+/* Media Queries */
+
+/* Medium screens (up to 992px) */
+@media (max-width: 992px) {
+  table {
+    width: 95%;
+  }
+  .tr {
+    grid-template-columns: 1fr 1fr;
+  }
+  .modal-content {
+    width: 80%;
+  }
+  button[type='submit'],
+  button[type='button'] {
+    font-size: 0.9rem;
+  }
+}
+
+/* Small screens (up to 600px) */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.5rem;
+  }
+  input[type='text'] {
+    width: 80%;
+    max-width: 15rem;
+  }
+  button[type='submit'],
+  button[type='button'] {
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+  }
+  .admin-actions {
+    flex-direction: column;
+  }
+  table {
+    width: 100%;
+  }
+  .tr {
+    grid-template-columns: 1fr;
+  }
+  th,
+  td {
+    font-size: 0.875rem;
+    padding: 0.5rem;
+  }
+  .modal-content {
+    width: 90%;
+  }
+  .logout-button {
+    font-size: 1rem;
+    padding: 0.6rem;
+  }
+  .profile-photo-container {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+}
