@@ -1,5 +1,4 @@
 const ExcelJS = require('exceljs');
-// const { pool } = require('./db/pool');
 const pool = require('./db/pool');
 
 const createAdminTableSQL = `CREATE TABLE IF NOT EXISTS admin (
@@ -46,6 +45,14 @@ const createStudentsTableSQL = `CREATE TABLE IF NOT EXISTS students (
     current_session_id INT
 );`;
 
+const createDeploymentStatusTableSQL = `
+  CREATE TABLE IF NOT EXISTS deployment_status (
+    id SERIAL PRIMARY KEY,
+    task_name VARCHAR(255) UNIQUE,
+    completed BOOLEAN DEFAULT FALSE
+  );
+`;
+
 async function initializeDatabase() {
   try {
     console.log('Initializing the database...');
@@ -54,6 +61,7 @@ async function initializeDatabase() {
     await pool.query(createVotingStatsTableSQL);
     await pool.query(createCandidatesTableSQL);
     await pool.query(createStudentsTableSQL);
+    await pool.query(createDeploymentStatusTableSQL);
 
     await pool.query(insertAdminSQL);
     console.log('Admin inserted successfully.');
@@ -65,11 +73,18 @@ async function initializeDatabase() {
 
 async function updateDatabaseFromExcel() {
   const workbook = new ExcelJS.Workbook();
-
-  // Start transaction
   const client = await pool.connect();
 
   try {
+    // Check if this task has already been completed
+    const checkStatusQuery = `SELECT completed FROM deployment_status WHERE task_name = 'updateDatabaseFromExcel'`;
+    const statusResult = await client.query(checkStatusQuery);
+
+    if (statusResult.rows.length > 0 && statusResult.rows[0].completed) {
+      console.log('Database update already completed. Skipping update.');
+      return; // Exit the function, no need to run it again
+    }
+
     await client.query('BEGIN');
 
     // PART 1: Read and update students data
@@ -141,7 +156,6 @@ async function updateDatabaseFromExcel() {
         position: row.getCell(3).value,
         number_of_votes: row.getCell(4).value,
         profile: row.getCell(5).value,
-        // The `votingstats_id` will be assigned later
       };
 
       candidatesData.push(candidate);
@@ -183,6 +197,15 @@ async function updateDatabaseFromExcel() {
     console.log('Candidates inserted or updated successfully.');
 
     await client.query('COMMIT');
+
+    // Mark the task as completed in the deployment_status table
+    const updateStatusQuery = `
+      INSERT INTO deployment_status (task_name, completed)
+      VALUES ('updateDatabaseFromExcel', true)
+      ON CONFLICT (task_name)
+      DO UPDATE SET completed = EXCLUDED.completed;
+    `;
+    await client.query(updateStatusQuery);
   } catch (error) {
     await client.query('ROLLBACK');
     console.error('Error during database update:', error.message);
