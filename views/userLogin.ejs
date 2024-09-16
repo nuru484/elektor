@@ -7,21 +7,21 @@
     <title>Login</title>
   </head>
   <body>
-    <h1>Student LogIn</h1>
-
-    <% if (errors && errors.length > 0) { %>
-    <ul>
-      <% errors.forEach(function(error) { %>
-      <li style="color: red"><%= error.message %></li>
-      <% if (error.sound) { %>
-      <audio id="errorSound" src="/sound/alert.mp3"></audio>
-      <% } %> <% }); %>
-    </ul>
-    <% } %>
+    <h1>LogIn To Vote</h1>
 
     <form action="/userLogin" method="POST">
+      <div class="errors">
+        <% if (errors && errors.length > 0) { %>
+        <ul>
+          <% errors.forEach(function(error) { %>
+          <li><%= error.message %></li>
+          <% if (error.sound) { %>
+          <audio id="errorSound" src="/sound/alert.mp3"></audio>
+          <% } %> <% }); %>
+        </ul>
+        <% } %>
+      </div>
       <div>
-        <label for="identifier">Name or Index Number</label>
         <input
           id="identifier"
           name="username"
@@ -31,7 +31,7 @@
           required
         />
       </div>
-      <button type="submit">Log In</button>
+      <button type="submit" class="btn">Log In</button>
       <a href="/" class="btn">Back To Dashboard</a>
     </form>
 
