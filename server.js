@@ -1,4 +1,5 @@
 const express = require('express');
+require('dotenv').config();
 const session = require('express-session');
 const { redisClient, sessionStore } = require('./redis');
 const passport = require('passport');
