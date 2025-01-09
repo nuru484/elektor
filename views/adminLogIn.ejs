@@ -3,45 +3,113 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/styles/logins.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="/images/logo.jpg" />
     <title>Admin LogIn</title>
   </head>
-  <body>
-    <h1>Admin LogIn</h1>
+  <body
+    class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-200 p-6"
+  >
+    <h1
+      class="text-4xl font-semibold text-gray-800 mb-8 text-center flex items-center gap-2"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        class="h-8 w-8 text-blue-600"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+        />
+      </svg>
+      Admin Login
+    </h1>
 
-    <form action="/admin/login" method="POST">
+    <form
+      action="/admin/login"
+      method="POST"
+      class="w-full max-w-md bg-white rounded-lg shadow-lg p-8 space-y-6"
+    >
       <div class="errors">
-        <!-- Display errors if any -->
         <% if (errors && errors.length > 0) { %>
-        <ul>
+        <ul class="space-y-2">
           <% errors.forEach(function(error) { %>
-          <li><%= error.message %></li>
+          <li class="text-red-600 bg-red-50 px-4 py-3 rounded-md text-sm">
+            <%= error.message %>
+          </li>
           <% }); %>
         </ul>
         <% } %>
       </div>
-      <div>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          placeholder="username"
-          required
-        />
+
+      <div class="space-y-4">
+        <div>
+          <label
+            for="username"
+            class="block text-sm font-medium text-gray-700 mb-1"
+            >Username</label
+          >
+          <input
+            type="text"
+            id="username"
+            name="username"
+            placeholder="Enter admin username"
+            required
+            class="w-full px-4 py-3 rounded-md border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition duration-200 text-gray-700 placeholder-gray-400"
+          />
+        </div>
+
+        <div>
+          <label
+            for="password"
+            class="block text-sm font-medium text-gray-700 mb-1"
+            >Password</label
+          >
+          <input
+            type="password"
+            id="password"
+            name="password"
+            placeholder="Enter admin password"
+            required
+            class="w-full px-4 py-3 rounded-md border-2 border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition duration-200 text-gray-700 placeholder-gray-400"
+          />
+        </div>
       </div>
 
-      <div>
-        <input
-          type="text"
-          id="password"
-          name="password"
-          placeholder="password"
-          required
-        />
-      </div>
+      <div class="space-y-4 pt-2">
+        <button
+          type="submit"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-md transition duration-200 focus:ring-2 focus:ring-blue-200 focus:ring-offset-2 flex items-center justify-center gap-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+            />
+          </svg>
+          Log In
+        </button>
 
-      <button type="submit">Log In</button>
-      <a href="/" class="btn">Back To Dashboard</a>
+        <a
+          href="/"
+          class="block w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-md text-center transition duration-200"
+        >
+          Back To Dashboard
+        </a>
+      </div>
     </form>
   </body>
 </html>

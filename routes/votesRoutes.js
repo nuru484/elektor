@@ -171,9 +171,5 @@ module.exports = function (io) {
     }
   });
 
-  router.get('/alreadyVoted', (req, res) => {
-    res.render('alreadyVoted');
-  });
-
   return router;
 };

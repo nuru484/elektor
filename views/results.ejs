@@ -3,66 +3,172 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/styles/resultsStyles.css" />
-    <link rel="stylesheet" href="/styles/logins.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
     <title>Strong Room Voting Results</title>
   </head>
-  <body>
-    <h1>Realtime Voting Results</h1>
-
-    <div id="results">
-      <!-- Voting Statistics -->
-      <div class="stats">
-        <h2>Voting Statistics</h2>
-
-        <p>
-          Total Registered Voters: <%= votingStats.total_number_of_voters %>
-        </p>
-        <p>Voter Participation: <%= votingStats.voter_turnout %></p>
-        <p>Non-Participants: <%= votingStats.voter_turnoff %></p>
-        <p>Skipped Ballots: <%= votingStats.skipped_votes %></p>
-        <p>Total Ballots Submitted: <%= votingStats.total_votes_cast %></p>
+  <body
+    class="min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-purple-50 py-8 px-4"
+  >
+    <div class="max-w-7xl mx-auto">
+      <div class="text-center mb-8">
+        <h1
+          class="text-4xl font-bold text-gray-800 flex items-center justify-center gap-3"
+        >
+          Realtime Voting Results
+        </h1>
       </div>
 
-      <!-- Group the results by position -->
-      <% const groupedResults = results.reduce((acc, result) => { if
-      (!acc[result.position]) { acc[result.position] = []; }
-      acc[result.position].push(result); return acc; }, {}); %>
-
-      <!-- Iterate over each position and display a table -->
-      <div class="table-container">
-        <% Object.keys(groupedResults).forEach(position => { %>
-        <div class="result-section">
-          <h2><%= position %></h2>
-
-          <!-- Calculate total votes for the position -->
-          <% let totalVotesForPosition = groupedResults[position].reduce((acc,
-          result) => acc + result.number_of_votes, 0); %>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Candidate Name</th>
-                <th>Number of Votes</th>
-                <th>Percentage</th>
-              </tr>
-            </thead>
-            <tbody>
-              <% groupedResults[position].forEach(result => { %>
-              <tr>
-                <td><%= result.candidate_name %></td>
-                <td><%= result.number_of_votes %></td>
-                <td>
-                  <% const percentage = totalVotesForPosition === 0 ? 0 :
-                  ((result.number_of_votes / totalVotesForPosition) *
-                  100).toFixed(2); %> <%= percentage %>%
-                </td>
-              </tr>
-              <% }); %>
-            </tbody>
-          </table>
+      <div id="results" class="space-y-8">
+        <!-- Voting Statistics -->
+        <div
+          class="stats bg-white rounded-xl shadow-lg p-6 border border-gray-100 w-full"
+        >
+          <h2
+            class="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-6 w-6 text-blue-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+              />
+            </svg>
+            Voting Statistics
+          </h2>
+          <div class="grid md:grid-cols-3 gap-4">
+            <div class="p-4 bg-blue-50 rounded-lg">
+              <p class="text-sm text-gray-600">Total Registered Voters</p>
+              <p class="text-2xl font-semibold text-gray-800">
+                <%= votingStats.total_number_of_voters %>
+              </p>
+            </div>
+            <div class="p-4 bg-green-50 rounded-lg">
+              <p class="text-sm text-gray-600">Voter Participation</p>
+              <p class="text-2xl font-semibold text-gray-800">
+                <%= votingStats.voter_turnout %>
+              </p>
+            </div>
+            <div class="p-4 bg-red-50 rounded-lg">
+              <p class="text-sm text-gray-600">Non-Participants</p>
+              <p class="text-2xl font-semibold text-gray-800">
+                <%= votingStats.voter_turnoff %>
+              </p>
+            </div>
+            <div class="p-4 bg-yellow-50 rounded-lg">
+              <p class="text-sm text-gray-600">Skipped Ballots</p>
+              <p class="text-2xl font-semibold text-gray-800">
+                <%= votingStats.skipped_votes %>
+              </p>
+            </div>
+            <div class="p-4 bg-purple-50 rounded-lg">
+              <p class="text-sm text-gray-600">Total Ballots Submitted</p>
+              <p class="text-2xl font-semibold text-gray-800">
+                <%= votingStats.total_votes_cast %>
+              </p>
+            </div>
+          </div>
         </div>
-        <% }); %>
+
+        <!-- Group the results by position -->
+        <% const groupedResults = results.reduce((acc, result) => { if
+        (!acc[result.position]) { acc[result.position] = []; }
+        acc[result.position].push(result); return acc; }, {}); %>
+
+        <!-- Results Tables -->
+        <div class="space-y-4">
+          <% Object.keys(groupedResults).forEach(position => { %>
+          <div
+            class="result-section bg-white rounded-xl shadow-lg p-6 border border-gray-100"
+          >
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+              <%= position %>
+            </h2>
+
+            <% let totalVotesForPosition = groupedResults[position].reduce((acc,
+            result) => acc + result.number_of_votes, 0); %>
+
+            <div class="overflow-x-auto">
+              <table class="w-full">
+                <thead>
+                  <tr class="bg-gray-50">
+                    <th
+                      class="px-6 py-3 text-left text-sm font-semibold text-gray-700"
+                    >
+                      Candidate Name
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-sm font-semibold text-gray-700"
+                    >
+                      Number of Votes
+                    </th>
+                    <th
+                      class="px-6 py-3 text-left text-sm font-semibold text-gray-700"
+                    >
+                      Percentage
+                    </th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <% groupedResults[position].forEach(result => { %>
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-6 py-4 text-sm text-gray-800">
+                      <%= result.candidate_name %>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-800">
+                      <%= result.number_of_votes %>
+                    </td>
+                    <td class="px-6 py-4 text-sm text-gray-800">
+                      <% const percentage = totalVotesForPosition === 0 ? 0 :
+                      ((result.number_of_votes / totalVotesForPosition) *
+                      100).toFixed(2); %>
+                      <div class="flex items-center gap-2">
+                        <div class="w-24 bg-gray-200 rounded-full h-2">
+                          <div
+                            class="bg-blue-500 rounded-full h-2"
+                            style="width: <%= percentage %>%"
+                          ></div>
+                        </div>
+                        <%= percentage %>%
+                      </div>
+                    </td>
+                  </tr>
+                  <% }); %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <% }); %>
+        </div>
+      </div>
+
+      <div class="mt-8 text-center">
+        <a
+          href="/"
+          class="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-200"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+          Back To Dashboard
+        </a>
       </div>
     </div>
 
@@ -70,18 +176,39 @@
     <script>
       const socket = io();
 
-      // Function to update the voting statistics section
       function updateVotingStats(stats) {
         return `
-        <div class="stats">
-          <h2>Voting Statistics</h2>
-          <p>Total Registered Voters: ${stats.total_number_of_voters}</p>
-          <p>Voter Participation: ${stats.voter_turnout}</p>
-          <p>Non-Participants: ${stats.voter_turnoff}</p>
-          <p>Skipped Ballots: ${stats.skipped_votes}</p>
-          <p>Total Ballots Submitted: ${stats.total_votes_cast}</p>
-        </div>
-      `;
+          <div class="stats bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              Voting Statistics
+            </h2>
+            <div class="grid md:grid-cols-3 gap-4">
+              <div class="p-4 bg-blue-50 rounded-lg">
+                <p class="text-sm text-gray-600">Total Registered Voters</p>
+                <p class="text-2xl font-semibold text-gray-800">${stats.total_number_of_voters}</p>
+              </div>
+              <div class="p-4 bg-green-50 rounded-lg">
+                <p class="text-sm text-gray-600">Voter Participation</p>
+                <p class="text-2xl font-semibold text-gray-800">${stats.voter_turnout}</p>
+              </div>
+              <div class="p-4 bg-red-50 rounded-lg">
+                <p class="text-sm text-gray-600">Non-Participants</p>
+                <p class="text-2xl font-semibold text-gray-800">${stats.voter_turnoff}</p>
+              </div>
+              <div class="p-4 bg-yellow-50 rounded-lg">
+                <p class="text-sm text-gray-600">Skipped Ballots</p>
+                <p class="text-2xl font-semibold text-gray-800">${stats.skipped_votes}</p>
+              </div>
+              <div class="p-4 bg-purple-50 rounded-lg">
+                <p class="text-sm text-gray-600">Total Ballots Submitted</p>
+                <p class="text-2xl font-semibold text-gray-800">${stats.total_votes_cast}</p>
+              </div>
+            </div>
+          </div>
+        `;
       }
 
       function updateResultsTables(results) {
@@ -93,7 +220,6 @@
           return acc;
         }, {});
 
-        // Define the desired order of positions
         const desiredOrder = [
           'PRESIDENT',
           'AMBASSADOR',
@@ -105,7 +231,6 @@
           'SPORTS SECRETARY',
         ];
 
-        // Sort the positions based on the desired order
         const orderedPositions = Object.keys(groupedResults).sort((a, b) => {
           return desiredOrder.indexOf(a) - desiredOrder.indexOf(b);
         });
@@ -118,38 +243,49 @@
             );
 
             return `
-        <div class="result-section">
-          <h2>${position}</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Candidate Name</th>
-                <th>Number of Votes</th>
-                <th>Percentage</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${groupedResults[position]
-                .map((result) => {
-                  const percentage =
-                    totalVotesForPosition === 0
-                      ? 0
-                      : (
-                          (result.number_of_votes / totalVotesForPosition) *
-                          100
-                        ).toFixed(2);
-                  return `
-                    <tr>
-                      <td>${result.candidate_name}</td>
-                      <td>${result.number_of_votes}</td>
-                      <td>${percentage}%</td>
-                    `;
-                })
-                .join('')}
-            </tbody>
-          </table>
-        </div>
-      `;
+              <div class="result-section bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4">${position}</h2>
+                <div class="overflow-x-auto">
+                  <table class="w-full">
+                    <thead>
+                      <tr class="bg-gray-50">
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Candidate Name</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Number of Votes</th>
+                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Percentage</th>
+                      </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                      ${groupedResults[position]
+                        .map((result) => {
+                          const percentage =
+                            totalVotesForPosition === 0
+                              ? 0
+                              : (
+                                  (result.number_of_votes /
+                                    totalVotesForPosition) *
+                                  100
+                                ).toFixed(2);
+                          return `
+                            <tr class="hover:bg-gray-50 transition-colors">
+                              <td class="px-6 py-4 text-sm text-gray-800">${result.candidate_name}</td>
+                              <td class="px-6 py-4 text-sm text-gray-800">${result.number_of_votes}</td>
+                              <td class="px-6 py-4 text-sm text-gray-800">
+                                <div class="flex items-center gap-2">
+                                  <div class="w-24 bg-gray-200 rounded-full h-2">
+                                    <div class="bg-blue-500 rounded-full h-2" style="width: ${percentage}%"></div>
+                                  </div>
+                                  ${percentage}%
+                                </div>
+                              </td>
+                            </tr>
+                          `;
+                        })
+                        .join('')}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            `;
           })
           .join('');
       }
@@ -158,10 +294,12 @@
         const resultsContainer = document.getElementById('results');
         resultsContainer.innerHTML = '';
         const tableContainer = document.createElement('div');
-        tableContainer.classList.add('table-container');
+        tableContainer.classList.add('table-container', 'grid', 'gap-6');
         tableContainer.innerHTML = updateResultsTables(results);
+
         if (results.length === 0) {
-          resultsContainer.innerHTML = '<p>No results available.</p>';
+          resultsContainer.innerHTML =
+            '<p class="text-center text-gray-500 text-lg">No results available.</p>';
           return;
         }
         const stats = results[1];
@@ -169,6 +307,5 @@
         resultsContainer.appendChild(tableContainer);
       });
     </script>
-    <div class="back-home"><a href="/" class="btn">Back To Dashboard</a></div>
   </body>
 </html>

@@ -3,6 +3,7 @@ const router = express.Router();
 const passport = require('passport');
 const pool = require('../db/pool');
 const axios = require('axios');
+require('dotenv').config();
 
 // Admin Login Page Route
 router.get('/login', (req, res) => {
