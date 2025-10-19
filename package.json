@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node --env-file .env server",
+    "start": "node server",
     "dev": "node --watch  --env-file .env server",
     "bootstrap": "npm install && npm run db:setup",
-    "db:setup": "node --env-file .env db/initialise.js"
+    "db:setup": "node db/initialise.js"
   },
   "keywords": [],
   "author": "",
