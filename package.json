@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "npm run db:setup && node server",
+    "start": "node server",
     "dev": "node --watch  --env-file .env server",
+    "bootstrap": "npm install && npm run db:setup",
     "db:setup": "node --env-file .env db/initialise.js"
   },
   "keywords": [],
