@@ -93,7 +93,6 @@ module.exports = function (io) {
       const allPositions = positionsRows.map((row) => row.position);
 
       if (allPositions.length === 0) {
-        console.log("No candidates available for voting");
         await client.query("ROLLBACK");
         return res.status(400).json({
           success: false,

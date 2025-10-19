@@ -3,14 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <title>Add Admin Form</title>
+    <script src="https://cdn.tailwindcss.com"></script><title>Add Admin Form</title>
   </head>
   <body>
-    <div class="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-2xl">
+    <div class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl">
       <!-- Header -->
-      <div class="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-purple-600">
-        <h2 class="text-xl sm:text-2xl font-bold text-white">Add New Admin</h2>
+      <div class="flex justify-between items-center p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-purple-600">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white">Add New Admin</h2>
+        </div>
         <button
           onclick="removeAdminForm()"
           class="modal-close-btn text-white hover:text-red-200 text-3xl font-bold leading-none transition-all"
@@ -22,11 +28,11 @@
       </div>
 
       <!-- Form -->
-      <form action="/admin/add-admin" method="POST" class="p-4 sm:p-6 space-y-4" id="add-admin-form">
+      <form id="add-admin-form" class="p-6 space-y-4">
         <!-- First Name and Last Name -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">
+            <label for="firstName" class="block text-sm font-semibold text-gray-700 mb-2">
               First Name <span class="text-red-500">*</span>
             </label>
             <input
@@ -34,13 +40,13 @@
               id="firstName"
               name="firstName"
               required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 text-sm sm:text-base transition-all"
               placeholder="Enter first name"
             />
           </div>
 
           <div>
-            <label for="lastName" class="block text-sm font-medium text-gray-700 mb-1">
+            <label for="lastName" class="block text-sm font-semibold text-gray-700 mb-2">
               Last Name <span class="text-red-500">*</span>
             </label>
             <input
@@ -48,7 +54,7 @@
               id="lastName"
               name="lastName"
               required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 text-sm sm:text-base transition-all"
               placeholder="Enter last name"
             />
           </div>
@@ -56,7 +62,7 @@
 
         <!-- Username -->
         <div>
-          <label for="userName" class="block text-sm font-medium text-gray-700 mb-1">
+          <label for="userName" class="block text-sm font-semibold text-gray-700 mb-2">
             Username <span class="text-red-500">*</span>
           </label>
           <input
@@ -64,15 +70,16 @@
             id="userName"
             name="userName"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all"
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 text-sm sm:text-base transition-all"
             placeholder="Enter username"
             autocomplete="username"
           />
+          <p class="text-xs text-gray-500 mt-1">Must be unique</p>
         </div>
 
         <!-- Password -->
         <div>
-          <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+          <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
             Password <span class="text-red-500">*</span>
           </label>
           <input
@@ -81,7 +88,7 @@
             name="password"
             required
             minlength="4"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all"
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 text-sm sm:text-base transition-all"
             placeholder="Enter password"
             autocomplete="new-password"
           />
@@ -90,14 +97,14 @@
 
         <!-- Phone Number -->
         <div>
-          <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
+          <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">
             Phone Number
           </label>
           <input
             type="tel"
             id="phone"
             name="phone"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all"
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 text-sm sm:text-base transition-all"
             placeholder="Enter phone number (optional)"
             autocomplete="tel"
           />
@@ -105,24 +112,29 @@
 
         <!-- Role Selection -->
         <div>
-          <label for="role" class="block text-sm font-medium text-gray-700 mb-1">
+          <label for="role" class="block text-sm font-semibold text-gray-700 mb-2">
             Role <span class="text-red-500">*</span>
           </label>
           <select
             id="role"
             name="role"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all"
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 text-sm sm:text-base transition-all"
           >
             <option value="">Select role</option>
             <option value="admin">Admin</option>
             <option value="super_admin">Super Admin</option>
           </select>
-          <div class="mt-2 p-3 bg-blue-50 rounded-md border border-blue-200">
-            <p class="text-xs text-gray-700">
-              <strong class="text-indigo-700">Admin:</strong> Can approve voters and add candidates<br>
-              <strong class="text-purple-700">Super Admin:</strong> Full access including adding voters, admins, and uploading Excel files
-            </p>
+          <div class="mt-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-indigo-200">
+            <div class="flex items-start gap-3">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div class="text-xs text-gray-700">
+                <p class="mb-2"><strong class="text-blue-700">Admin:</strong> Can approve voters and add candidates</p>
+                <p><strong class="text-purple-700">Super Admin:</strong> Full access including adding voters, admins, and uploading Excel files</p>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -131,15 +143,18 @@
           <button
             type="button"
             onclick="removeAdminForm()"
-            class="w-full sm:w-auto px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors text-sm sm:text-base font-medium"
+            class="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-semibold transition-all text-sm sm:text-base"
           >
             Cancel
           </button>
           <button
             type="submit"
-            class="w-full sm:w-auto px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm sm:text-base font-medium"
+            class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold transition-all text-sm sm:text-base shadow-lg flex items-center justify-center gap-2"
           >
-            Add Admin
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Add Admin</span>
           </button>
         </div>
       </form>

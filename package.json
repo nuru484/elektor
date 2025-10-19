@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node server",
+    "start": "npm run db:setup && node server",
     "dev": "node --watch  --env-file .env server",
     "db:setup": "node --env-file .env db/initialise.js"
   },

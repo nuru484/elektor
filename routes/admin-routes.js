@@ -17,7 +17,10 @@ function isSuperAdmin(req, res, next) {
   if (req.isAuthenticated() && req.user.role === "super_admin") {
     return next();
   }
-  return res.status(403).json({ error: "Access denied. Super admin only." });
+  return res.status(403).json({
+    success: false,
+    error: "Access denied. Super admin only.",
+  });
 }
 
 // Helper function to ensure votingstats record exists
@@ -103,12 +106,15 @@ router.get("/dashboard", async (req, res) => {
         totalPages: totalPages,
         limit: limit,
         totalVoters: totalVoters,
-        user: req.user, // Pass user info to template
+        user: req.user,
         isSuperAdmin: req.user.role === "super_admin",
       });
     } catch (err) {
       console.error("Error fetching voters:", err);
-      return res.status(500).json({ error: "Failed to fetch voters." });
+      return res.status(500).json({
+        success: false,
+        error: "Failed to fetch voters.",
+      });
     }
   } else {
     res.redirect("/admin/login");
@@ -139,7 +145,23 @@ router.post("/add-admin", isSuperAdmin, async (req, res) => {
 
     // Validate role
     if (!["admin", "super_admin"].includes(role)) {
-      return res.status(400).json({ error: "Invalid role specified." });
+      return res.status(400).json({
+        success: false,
+        error: "Invalid role specified.",
+      });
+    }
+
+    // Check if username already exists
+    const existingUser = await pool.query(
+      "SELECT id FROM admin WHERE userName = $1",
+      [userName]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: "Username already exists.",
+      });
     }
 
     // Hash password
@@ -151,14 +173,22 @@ router.post("/add-admin", isSuperAdmin, async (req, res) => {
       [firstName, lastName, userName, hashedPassword, phone || null, role]
     );
 
-    res.redirect("/admin/dashboard");
+    return res.status(201).json({
+      success: true,
+      message: "Admin added successfully",
+    });
   } catch (err) {
     console.error("Error adding admin:", err);
     if (err.code === "23505") {
-      // Unique violation
-      return res.status(400).json({ error: "Username already exists." });
+      return res.status(400).json({
+        success: false,
+        error: "Username already exists.",
+      });
     }
-    return res.status(500).json({ error: "Failed to add admin." });
+    return res.status(500).json({
+      success: false,
+      error: "Failed to add admin.",
+    });
   }
 });
 
@@ -171,21 +201,50 @@ router.post("/add-voter", isSuperAdmin, async (req, res) => {
 
     const { firstName, lastName, voterId, phone_number } = req.body;
 
+    // Check if voter ID already exists
+    const existingVoter = await client.query(
+      "SELECT id FROM voters WHERE voterId = $1",
+      [voterId]
+    );
+
+    if (existingVoter.rows.length > 0) {
+      await client.query("ROLLBACK");
+      return res.status(400).json({
+        success: false,
+        error: "Voter ID already exists.",
+      });
+    }
+
     await ensureVotingStatsExists(client);
 
     await client.query(
-      "INSERT INTO voters (firstName, lastName, voterId, phone_number) VALUES ($1, $2, $3, $4)",
+      "INSERT INTO voters (firstname, lastname, voterid, phone_number) VALUES ($1, $2, $3, $4)",
       [firstName, lastName, voterId, phone_number || null]
     );
 
     await updateVotingStats(client, 1);
 
     await client.query("COMMIT");
-    res.redirect("/admin/dashboard");
+
+    return res.status(201).json({
+      success: true,
+      message: "Voter added successfully",
+    });
   } catch (err) {
     await client.query("ROLLBACK");
     console.error("Error adding voter:", err);
-    return res.status(500).json({ error: "Failed to add voter." });
+
+    if (err.code === "23505") {
+      return res.status(400).json({
+        success: false,
+        error: "Voter ID already exists.",
+      });
+    }
+
+    return res.status(500).json({
+      success: false,
+      error: "Failed to add voter.",
+    });
   } finally {
     client.release();
   }
@@ -197,7 +256,10 @@ router.post(
   upload.single("profilePhoto"),
   async (req, res) => {
     if (!req.isAuthenticated()) {
-      return res.redirect("/admin/login");
+      return res.status(401).json({
+        success: false,
+        error: "Unauthorized. Please login.",
+      });
     }
 
     try {
@@ -209,10 +271,16 @@ router.post(
         [firstName, lastName, position, profilePhoto]
       );
 
-      res.redirect("/admin/dashboard");
+      return res.status(201).json({
+        success: true,
+        message: "Candidate added successfully",
+      });
     } catch (err) {
       console.error("Error adding candidate:", err);
-      return res.status(500).json({ error: "Failed to add candidate." });
+      return res.status(500).json({
+        success: false,
+        error: "Failed to add candidate.",
+      });
     }
   }
 );
@@ -227,7 +295,10 @@ router.post(
 
     try {
       if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded." });
+        return res.status(400).json({
+          success: false,
+          error: "No file uploaded.",
+        });
       }
 
       const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
@@ -235,16 +306,31 @@ router.post(
       const worksheet = workbook.Sheets[sheetName];
       const voters = xlsx.utils.sheet_to_json(worksheet);
 
+      if (voters.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Excel file is empty or invalid.",
+        });
+      }
+
       let successCount = 0;
       let errorCount = 0;
+      const errors = [];
 
       try {
         await client.query("BEGIN");
-
         await ensureVotingStatsExists(client);
 
         for (const voter of voters) {
           try {
+            if (!voter.firstName || !voter.lastName || !voter.voterId) {
+              errorCount++;
+              errors.push(
+                `Row missing required fields: ${JSON.stringify(voter)}`
+              );
+              continue;
+            }
+
             await client.query(
               "INSERT INTO voters (firstName, lastName, voterId, phone_number) VALUES ($1, $2, $3, $4)",
               [
@@ -258,6 +344,7 @@ router.post(
           } catch (err) {
             console.error(`Error inserting voter ${voter.voterId}:`, err);
             errorCount++;
+            errors.push(`Failed to add voter ${voter.voterId}`);
           }
         }
 
@@ -266,18 +353,26 @@ router.post(
         }
 
         await client.query("COMMIT");
+
+        return res.status(201).json({
+          success: true,
+          message: `Successfully uploaded ${successCount} voter(s). ${errorCount} error(s) occurred.`,
+          details: {
+            successCount,
+            errorCount,
+            errors: errorCount > 0 ? errors.slice(0, 5) : [],
+          },
+        });
       } catch (err) {
         await client.query("ROLLBACK");
         throw err;
       }
-
-      console.log(
-        `Upload complete: ${successCount} voters added, ${errorCount} errors`
-      );
-      res.redirect("/admin/dashboard");
     } catch (err) {
       console.error("Error uploading voters:", err);
-      return res.status(500).json({ error: "Failed to upload voters." });
+      return res.status(500).json({
+        success: false,
+        error: "Failed to upload voters.",
+      });
     } finally {
       client.release();
     }
@@ -287,7 +382,10 @@ router.post(
 // Approve Voter Route
 router.post("/approve-voter/:voterId", async (req, res) => {
   if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.status(401).json({
+      success: false,
+      error: "Unauthorized",
+    });
   }
 
   try {
@@ -299,7 +397,10 @@ router.post("/approve-voter/:voterId", async (req, res) => {
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Voter not found" });
+      return res.status(404).json({
+        success: false,
+        error: "Voter not found",
+      });
     }
 
     res.json({
@@ -309,7 +410,10 @@ router.post("/approve-voter/:voterId", async (req, res) => {
     });
   } catch (err) {
     console.error("Error approving voter:", err);
-    return res.status(500).json({ error: "Failed to approve voter." });
+    return res.status(500).json({
+      success: false,
+      error: "Failed to approve voter.",
+    });
   }
 });
 

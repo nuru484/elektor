@@ -3,98 +3,114 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Add Voter Form</title>
-    <link rel="icon" href="/elektor-logo.png" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <title>Add Voter Form</title>
   </head>
-  <body class="bg-gray-100 h-screen">
-    <div
-      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10"
-    >
-      <div class="w-6/12 max-w-md bg-white rounded-lg shadow-lg">
-        <!-- Modal header -->
-        <div class="flex justify-between items-center p-4 border-b">
-          <h3 class="text-lg font-semibold text-gray-900">
-            Add New Voter
-          </h3>
-          <button
-            onclick="removeVoterForm()"
-            class="w-8 h-8 flex items-center justify-center bg-transparent hover:bg-gray-200 text-gray-400 rounded-lg"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke-width="2"
-              stroke="currentColor"
-              class="w-4 h-4"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M6 18L18 6M6 6l12 12"
-              />
+  <body>
+    <div class="w-full max-w-2xl mx-auto bg-white rounded-2xl shadow-2xl">
+      <!-- Header -->
+      <div class="flex justify-between items-center p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-blue-700">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
             </svg>
-            <span class="sr-only">Close</span>
-          </button>
+          </div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white">Add New Voter</h2>
         </div>
+        <button
+          onclick="removeVoterForm()"
+          class="modal-close-btn text-white hover:text-red-200 text-3xl font-bold leading-none transition-all"
+          aria-label="Close"
+          type="button"
+        >
+          &times;
+        </button>
+      </div>
 
-        <!-- Modal body -->
-        <form action="/admin/add-voter" method="POST" class="space-y-4 p-4">
-          <!-- First Name -->
-          <div class="relative">
+      <!-- Form -->
+      <form id="add-voter-form" class="p-6 space-y-4">
+        <!-- First Name and Last Name -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label for="firstName" class="block text-sm font-semibold text-gray-700 mb-2">
+              First Name <span class="text-red-500">*</span>
+            </label>
             <input
               type="text"
+              id="firstName"
               name="firstName"
               required
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300"
-              placeholder="First Name"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-sm sm:text-base transition-all"
+              placeholder="Enter first name"
             />
           </div>
 
-          <!-- Last Name -->
-          <div class="relative">
+          <div>
+            <label for="lastName" class="block text-sm font-semibold text-gray-700 mb-2">
+              Last Name <span class="text-red-500">*</span>
+            </label>
             <input
               type="text"
+              id="lastName"
               name="lastName"
               required
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300"
-              placeholder="Last Name"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-sm sm:text-base transition-all"
+              placeholder="Enter last name"
             />
           </div>
+        </div>
 
-          <!-- Voter ID -->
-          <div class="relative">
-            <input
-              type="text"
-              name="voterId"
-              required
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300"
-              placeholder="Voter ID"
-            />
-          </div>
+        <!-- Voter ID -->
+        <div>
+          <label for="voterId" class="block text-sm font-semibold text-gray-700 mb-2">
+            Voter ID <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="voterId"
+            name="voterId"
+            required
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-sm sm:text-base transition-all"
+            placeholder="Enter unique voter ID"
+          />
+          <p class="text-xs text-gray-500 mt-1">Must be unique for each voter</p>
+        </div>
 
-          <!-- Phone Number -->
-          <div class="relative">
-            <input
-              type="text"
-              name="phone_number"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-300"
-              placeholder="Phone Number (Optional)"
-            />
-          </div>
+        <!-- Phone Number -->
+        <div>
+          <label for="phone_number" class="block text-sm font-semibold text-gray-700 mb-2">
+            Phone Number
+          </label>
+          <input
+            type="tel"
+            id="phone_number"
+            name="phone_number"
+            class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-100 text-sm sm:text-base transition-all"
+            placeholder="Enter phone number (optional)"
+          />
+        </div>
 
-          <!-- Submit button -->
-          <div class="flex justify-end">
-            <button
-              type="submit"
-              class="bg-blue-600 text-white font-medium rounded-lg px-5 py-2.5 hover:bg-blue-700 transition focus:outline-none focus:ring-4 focus:ring-blue-300"
-            >
-              Add Voter
-            </button>
-          </div>
-        </form>
-      </div>
+        <!-- Action Buttons -->
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200">
+          <button
+            type="button"
+            onclick="removeVoterForm()"
+            class="w-full sm:w-auto px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-xl font-semibold transition-all text-sm sm:text-base"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-semibold transition-all text-sm sm:text-base shadow-lg flex items-center justify-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>Add Voter</span>
+          </button>
+        </div>
+      </form>
     </div>
   </body>
 </html>
