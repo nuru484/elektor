@@ -3,15 +3,145 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="/styles/adminDashboardStyles.css" />
     <link rel="icon" href="/elektor-logo.png" />
     <script src="https://cdn.tailwindcss.com"></script>
     <title>Admin Dashboard</title>
+    <style>
+      .form-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        overflow-y: auto;
+        padding: 20px;
+        backdrop-filter: blur(2px);
+      }
+      
+      .form-modal-overlay.active {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .form-modal-content {
+        max-height: 90vh;
+        overflow-y: auto;
+        animation: slideIn 0.3s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Responsive table */
+      .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        min-width: 100%;
+        border-collapse: collapse;
+      }
+
+      @media (max-width: 1024px) {
+        .controls {
+          flex-direction: column;
+          align-items: flex-start !important;
+        }
+        
+        .add-btns {
+          width: 100%;
+          justify-content: flex-start;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .add-btns {
+          flex-wrap: wrap;
+        }
+        
+        .add-btns button {
+          flex: 1 1 calc(50% - 0.75rem);
+          min-width: 140px;
+        }
+        
+        table {
+          font-size: 0.875rem;
+        }
+        
+        td, th {
+          padding: 0.5rem 0.25rem;
+        }
+
+        .badge {
+          font-size: 0.625rem;
+          padding: 0.25rem 0.5rem;
+        }
+      }
+      
+      @media (max-width: 640px) {
+        .add-btns {
+          flex-direction: column;
+        }
+        
+        .add-btns button {
+          width: 100%;
+          flex: 1 1 100%;
+        }
+
+        .header-content {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.5rem;
+        }
+
+        .pagination {
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+        .pagination .page-item {
+          margin: 0.25rem;
+        }
+      }
+
+      body.modal-open {
+        overflow: hidden;
+      }
+
+      .modal-close-btn {
+        transition: all 0.2s ease;
+      }
+
+      .modal-close-btn:hover {
+        transform: scale(1.1);
+        color: #ef4444;
+      }
+
+      /* Loading state */
+      .loading {
+        pointer-events: none;
+        opacity: 0.6;
+      }
+    </style>
   </head>
   <body>
-    <div class="flex justify-between items-center px-10 py-4">
-      <h1>Admin Dashboard</h1>
-      <div class="text-sm text-gray-600">
+    <!-- Header Section -->
+    <div class="header-content flex flex-col sm:flex-row justify-between items-start sm:items-center px-4 sm:px-10 py-4 gap-2">
+      <h1 class="text-xl sm:text-2xl lg:text-3xl font-bold">Admin Dashboard</h1>
+      <div class="text-xs sm:text-sm text-gray-600">
         Logged in as: <strong><%= user.firstName %> <%= user.lastName %></strong>
         <% if (isSuperAdmin) { %>
           <span class="ml-2 bg-purple-600 text-white px-2 py-1 rounded text-xs">Super Admin</span>
@@ -21,137 +151,148 @@
       </div>
     </div>
 
-    <!-- Search form -->
-    <form action="/admin/search" method="GET">
-      <input type="text" name="query" placeholder="Search for a voter..." />
-      <button type="submit" class="search">Search</button>
-    </form>
+    <!-- Search Form -->
+    <div class="px-4 sm:px-10 mb-4">
+      <form action="/admin/search" method="GET" class="w-full">
+        <div class="flex gap-2">
+          <input 
+            type="text" 
+            name="query" 
+            placeholder="Search for a voter..." 
+            class="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+          />
+          <button 
+            type="submit" 
+            class="search bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 whitespace-nowrap text-sm sm:text-base transition-colors"
+          >
+            Search
+          </button>
+        </div>
+      </form>
+    </div>
 
     <!-- Action Buttons -->
-    <div class="controls flex justify-between items-center px-10 py-6">
-      <h2>Registered Voters</h2>
-      <div class="add-btns flex justify-center items-center gap-6">
+    <div class="controls flex flex-col lg:flex-row justify-between items-start lg:items-center px-4 sm:px-10 py-6 gap-4">
+      <h2 class="text-lg sm:text-xl font-semibold">Registered Voters</h2>
+      <div class="add-btns flex flex-wrap justify-start lg:justify-center items-center gap-3 w-full lg:w-auto">
         <% if (isSuperAdmin) { %>
-          <div class="add-voter">
-            <button
-              onclick="loadAddVoterForm()"
-              class="flex justify-center items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-            >
-              <span class="text-sm">Add Voter</span>
-            </button>
-            <div id="voter-form"></div>
-          </div>
+          <button
+            onclick="loadAddVoterForm()"
+            class="flex justify-center items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition-colors"
+          >
+            <span>Add Voter</span>
+          </button>
           
-          <div class="upload-voters">
-            <button
-              onclick="loadUploadVotersForm()"
-              class="flex justify-center items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
-            >
-              <span class="text-sm">Upload Voters (Excel)</span>
-            </button>
-            <div id="upload-voters-form"></div>
-          </div>
+          <button
+            onclick="loadUploadVotersForm()"
+            class="flex justify-center items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700 text-sm transition-colors"
+          >
+            <span>Upload Voters (Excel)</span>
+          </button>
 
-          <div class="add-admin">
-            <button
-              onclick="loadAddAdminForm()"
-              class="flex justify-center items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
-            >
-              <span class="text-sm">Add Admin</span>
-            </button>
-            <div id="admin-form"></div>
-          </div>
+          <button
+            onclick="loadAddAdminForm()"
+            class="flex justify-center items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 text-sm transition-colors"
+          >
+            <span>Add Admin</span>
+          </button>
+
+           <button
+          onclick="loadAddCandidateForm()"
+          class="flex justify-center items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 text-sm transition-colors"
+        >
+          <span>Add Candidate</span>
+        </button>
         <% } %>
         
-        <div class="add-candidate">
-          <button
-            onclick="loadAddCandidateForm()"
-            class="flex justify-center items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          >
-            <span class="text-sm">Add Candidate</span>
-          </button>
-          <div id="candidate-form"></div>
-        </div>
+       
       </div>
     </div>
 
-    
-    <% if (voters.length === 0) { %>
-      <p>No voters found.</p>
-    <% } else { %>
-      <table>
-        <thead>
-          <tr>
-            <th>Voter ID</th>
-            <th>Name</th>
-            <th>Phone Number</th>
-            <th>Approval Status</th>
-            <th>Vote Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% voters.forEach(voter => { %>
-          <tr class="<%= voter.votestatus ? 'voted' : 'not-voted' %>">
-            <td><strong><%= voter.voterid %></strong></td>
-            <td class="name_column">
-              <%= voter.firstname %> <%= voter.lastname %>
-            </td>
-            <td>
-              <% if (voter.phone_number) { %>
-                +<%= voter.phone_number %>
-              <% } else { %>
-                <span class="no-data">N/A</span>
-              <% } %>
-            </td>
-            <td>
-              <% if (voter.approvalstatus) { %>
-                <span class="badge bg-green-500 text-white px-2 py-1 rounded">Approved</span>
-              <% } else { %>
-                <span class="badge bg-yellow-500 text-white px-2 py-1 rounded">Pending</span>
-              <% } %>
-            </td>
-            <td>
-              <% if (voter.votestatus) { %>
-                <span class="badge voted-badge">Voted</span>
-              <% } else { %>
-                <span class="badge not-voted-badge">Not Voted</span>
-              <% } %>
-            </td>
-            <td>
-              <% if (!voter.approvalstatus) { %>
-                <button
-                  class="approve-btn bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm"
-                  data-voter-id="<%= voter.voterid %>"
-                  onclick="showApprovalModal('<%= voter.voterid %>', '<%= voter.firstname %> <%= voter.lastname %>')"
-                >
-                  Approve
-                </button>
-              <% } else { %>
-                <span class="text-gray-400 text-sm">Approved</span>
-              <% } %>
-            </td>
-          </tr>
-          <% }); %>
-        </tbody>
-      </table>
-    <% } %>
+    <!-- Voters Table -->
+    <div class="px-4 sm:px-10">
+      <% if (voters.length === 0) { %>
+        <div class="text-center py-12">
+          <p class="text-gray-500 text-lg">No voters found.</p>
+        </div>
+      <% } else { %>
+        <div class="table-container">
+          <table class="w-full border-collapse bg-white shadow-sm rounded-lg overflow-hidden">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Voter ID</th>
+                <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Name</th>
+                <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 hidden sm:table-cell">Phone Number</th>
+                <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Approval Status</th>
+                <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 hidden md:table-cell">Vote Status</th>
+                <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+              <% voters.forEach(voter => { %>
+              <tr class="<%= voter.votestatus ? 'voted bg-green-50' : 'not-voted hover:bg-gray-50' %> transition-colors">
+                <td class="px-4 py-3">
+                  <strong class="text-xs sm:text-sm"><%= voter.voterid %></strong>
+                </td>
+                <td class="name_column px-4 py-3 text-xs sm:text-sm">
+                  <%= voter.firstname %> <%= voter.lastname %>
+                </td>
+                <td class="px-4 py-3 text-xs sm:text-sm hidden sm:table-cell">
+                  <% if (voter.phone_number) { %>
+                    +<%= voter.phone_number %>
+                  <% } else { %>
+                    <span class="no-data text-gray-400">N/A</span>
+                  <% } %>
+                </td>
+                <td class="px-4 py-3">
+                  <% if (voter.approvalstatus) { %>
+                    <span class="badge inline-block bg-green-500 text-white px-2 py-1 rounded text-xs whitespace-nowrap">Approved</span>
+                  <% } else { %>
+                    <span class="badge inline-block bg-yellow-500 text-white px-2 py-1 rounded text-xs whitespace-nowrap">Pending</span>
+                  <% } %>
+                </td>
+                <td class="px-4 py-3 hidden md:table-cell">
+                  <% if (voter.votestatus) { %>
+                    <span class="badge inline-block voted-badge bg-blue-500 text-white px-2 py-1 rounded text-xs">Voted</span>
+                  <% } else { %>
+                    <span class="badge inline-block not-voted-badge bg-gray-400 text-white px-2 py-1 rounded text-xs">Not Voted</span>
+                  <% } %>
+                </td>
+                <td class="px-4 py-3">
+                  <% if (!voter.approvalstatus) { %>
+                    <button
+                      class="approve-btn bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-xs sm:text-sm transition-colors whitespace-nowrap"
+                      data-voter-id="<%= voter.voterid %>"
+                      onclick="showApprovalModal('<%= voter.voterid %>', '<%= voter.firstname %> <%= voter.lastname %>')"
+                    >
+                      Approve
+                    </button>
+                  <% } else { %>
+                    <span class="text-gray-400 text-xs sm:text-sm">Approved</span>
+                  <% } %>
+                </td>
+              </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
 
     <!-- Pagination -->
     <% if (totalPages > 1) { %>
-    <nav aria-label="Page navigation">
-      <ul class="pagination">
+    <nav aria-label="Page navigation" class="px-4 sm:px-10 mt-6">
+      <ul class="pagination flex justify-center items-center gap-2">
         <% if (currentPage > 1) { %>
         <li class="page-item">
           
-            class="page-link"
+            class="page-link px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm transition-colors"
             href="/admin/dashboard?page=<%= currentPage - 1 %>&limit=<%= limit %>"
-            >Previous</a
-          >
+          >Previous</a>
         </li>
         <% } else { %>
         <li class="page-item disabled">
-          <span class="page-link">Previous</span>
+          <span class="page-link px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-400 text-sm">Previous</span>
         </li>
         <% } %>
 
@@ -159,14 +300,13 @@
           <% if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) { %>
             <li class="page-item <%= i === currentPage ? 'active' : '' %>">
               
-                class="page-link"
+                class="page-link px-3 py-2 <%= i === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100' %> border border-gray-300 rounded text-sm transition-colors"
                 href="/admin/dashboard?page=<%= i %>&limit=<%= limit %>"
-                ><%= i %></a
-              >
+              ><%= i %></a>
             </li>
           <% } else if (i === currentPage - 3 || i === currentPage + 3) { %>
             <li class="page-item">
-              <span class="page-link">...</span>
+              <span class="page-link px-3 py-2 text-gray-400 text-sm">...</span>
             </li>
           <% } %>
         <% } %>
@@ -174,14 +314,13 @@
         <% if (currentPage < totalPages) { %>
         <li class="page-item">
           
-            class="page-link"
+            class="page-link px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm transition-colors"
             href="/admin/dashboard?page=<%= currentPage + 1 %>&limit=<%= limit %>"
-            >Next</a
-          >
+          >Next</a>
         </li>
         <% } else { %>
         <li class="page-item disabled">
-          <span class="page-link">Next</span>
+          <span class="page-link px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-400 text-sm">Next</span>
         </li>
         <% } %>
       </ul>
@@ -189,31 +328,57 @@
     <% } %>
 
     <!-- Approval Confirmation Modal -->
-    <div id="approval-modal" class="modal" style="display: none;">
-      <div class="modal-content bg-white rounded-lg p-6 max-w-md mx-auto mt-20">
-        <span class="modal-close cursor-pointer float-right text-2xl">&times;</span>
-        <h2 id="approval-modal-title" class="text-xl font-bold mb-4">Approve Voter</h2>
-        <p id="approval-modal-message" class="mb-6">Are you sure you want to approve this voter?</p>
-        <div class="flex justify-end gap-4">
-          <button
-            id="approval-modal-cancel"
-            class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
-          >
-            Cancel
-          </button>
-          <button
-            id="approval-modal-confirm"
-            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          >
-            Confirm
-          </button>
+    <div id="approval-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50" style="display: none;">
+      <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="modal-content bg-white rounded-lg p-6 max-w-md w-full mx-auto shadow-2xl">
+          <div class="flex justify-between items-center mb-4">
+            <h2 id="approval-modal-title" class="text-xl font-bold">Approve Voter</h2>
+            <span class="modal-close modal-close-btn cursor-pointer text-2xl text-gray-500 hover:text-gray-700">&times;</span>
+          </div>
+          <p id="approval-modal-message" class="mb-6 text-gray-700">Are you sure you want to approve this voter?</p>
+          <div class="flex justify-end gap-4">
+            <button
+              id="approval-modal-cancel"
+              class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              id="approval-modal-confirm"
+              class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors"
+            >
+              Confirm
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <form action="/admin/login" method="GET">
-      <button type="submit" class="logout-button">Logout</button>
-    </form>
+    <!-- Modal Overlays for Forms -->
+    <div id="voter-form-modal" class="form-modal-overlay">
+      <div id="voter-form" class="form-modal-content"></div>
+    </div>
+    
+    <div id="upload-voters-form-modal" class="form-modal-overlay">
+      <div id="upload-voters-form" class="form-modal-content"></div>
+    </div>
+
+    <div id="admin-form-modal" class="form-modal-overlay">
+      <div id="admin-form" class="form-modal-content"></div>
+    </div>
+
+    <div id="candidate-form-modal" class="form-modal-overlay">
+      <div id="candidate-form" class="form-modal-content"></div>
+    </div>
+
+    <!-- Logout Button -->
+    <div class="px-4 sm:px-10 py-6">
+      <form action="/admin/login" method="GET">
+        <button type="submit" class="logout-button bg-red-600 text-white px-6 py-2 rounded hover:bg-red-700 transition-colors">
+          Logout
+        </button>
+      </form>
+    </div>
 
     <script>
       // Pass isSuperAdmin to JavaScript

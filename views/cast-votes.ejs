@@ -13,6 +13,13 @@
       <h5>Please Proceed to Vote for Your Candidate</h5>
     </header>
 
+    <% if (typeof noCandidates !== 'undefined' && noCandidates) { %>
+  <div style="text-align: center; padding: 40px; background-color: #fff3cd; margin: 20px; border-radius: 8px;">
+    <h3 style="color: #856404;">No Candidates Available</h3>
+    <p>There are currently no candidates registered for this election. Please contact the administrator.</p>
+  </div>
+<% } %>
+
     <form id="voteForm" action="/votes/votes" method="POST">
       <fieldset>
       <% Object.keys(groupedCandidates).forEach(position => { 

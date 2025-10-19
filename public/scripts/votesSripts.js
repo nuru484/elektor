@@ -15,6 +15,15 @@ document.addEventListener("DOMContentLoaded", function () {
   );
   const voteForm = document.getElementById("voteForm");
 
+  // **NEW: Check if there are any candidates on page load**
+  if (voteButtons.length === 0 && skipButtons.length === 0) {
+    // No candidates available, disable submit button
+    submitVoteButton.disabled = true;
+    submitVoteButton.textContent = "No Candidates Available";
+    submitVoteButton.style.opacity = "0.5";
+    submitVoteButton.style.cursor = "not-allowed";
+  }
+
   // Handle vote button clicks
   voteButtons.forEach((button) => {
     button.addEventListener("click", function () {
@@ -84,40 +93,47 @@ document.addEventListener("DOMContentLoaded", function () {
   submitVoteButton.addEventListener("click", function (e) {
     e.preventDefault();
 
+    // **NEW: Double-check if candidates exist**
+    const hiddenInputs = document.querySelectorAll(
+      'input[type="hidden"][required]'
+    );
+
+    if (hiddenInputs.length === 0) {
+      alert("No candidates available for voting at this time.");
+      return;
+    }
+
     const selectedCandidates = {};
     let allPositionsVoted = true;
 
     // Loop through each position and get the selected candidate's name
-    document
-      .querySelectorAll('input[type="hidden"][required]')
-      .forEach((input) => {
-        const value = input.value;
-        const position = input.name.replace("CandidateId", "");
+    hiddenInputs.forEach((input) => {
+      const value = input.value;
+      const position = input.name.replace("CandidateId", "");
 
-        if (!value) {
-          allPositionsVoted = false;
-          return;
-        }
+      if (!value || value.trim() === "") {
+        allPositionsVoted = false;
+        return;
+      }
 
-        if (value === "skipped") {
-          selectedCandidates[position] = "Skipped";
-        } else {
-          // Find the candidate name from the button
-          const candidateButton = document.querySelector(
-            `button[data-position][data-candidate-id="${value}"]`
+      if (value === "skipped") {
+        selectedCandidates[position] = "Skipped";
+      } else {
+        // Find the candidate name from the button
+        const candidateButton = document.querySelector(
+          `button[data-position][data-candidate-id="${value}"]`
+        );
+
+        if (candidateButton) {
+          const candidateName = candidateButton.getAttribute(
+            "data-candidate-name"
           );
-
-          if (candidateButton) {
-            const candidateName = candidateButton.getAttribute(
-              "data-candidate-name"
-            );
-            selectedCandidates[position] =
-              candidateName || `Candidate ${value}`;
-          } else {
-            selectedCandidates[position] = `Candidate ${value}`;
-          }
+          selectedCandidates[position] = candidateName || `Candidate ${value}`;
+        } else {
+          selectedCandidates[position] = `Candidate ${value}`;
         }
-      });
+      }
+    });
 
     // Check if all positions have been voted or skipped
     if (!allPositionsVoted) {

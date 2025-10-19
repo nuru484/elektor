@@ -20,6 +20,15 @@ module.exports = function (io) {
         );
         const candidates = candidatesResult.rows;
 
+        // **NEW: Check if there are any candidates**
+        if (candidates.length === 0) {
+          return res.render("cast-votes", {
+            voter,
+            groupedCandidates: {},
+            noCandidates: true,
+          });
+        }
+
         const groupedCandidates = candidates.reduce((acc, candidate) => {
           if (!acc[candidate.position]) {
             acc[candidate.position] = [];
@@ -39,6 +48,7 @@ module.exports = function (io) {
         res.render("cast-votes", {
           voter,
           groupedCandidates,
+          noCandidates: false,
         });
       } catch (err) {
         console.error("Error fetching candidates:", err);
@@ -77,6 +87,16 @@ module.exports = function (io) {
       );
       const allPositions = positionsRows.map((row) => row.position);
 
+      // **NEW: Check if there are any positions/candidates available**
+      if (allPositions.length === 0) {
+        console.log("No candidates available for voting");
+        await client.query("ROLLBACK");
+        return res.status(400).json({
+          error:
+            "No candidates available. Voting is not possible at this time.",
+        });
+      }
+
       const votes = {};
       let totalVotesCast = 0;
       let skippedVotes = 0;
@@ -85,11 +105,12 @@ module.exports = function (io) {
         const fieldName = `${position.replace(/\s+/g, "")}CandidateId`;
         const candidateId = req.body[fieldName];
 
-        if (!candidateId) {
+        // **UPDATED: More specific error message**
+        if (!candidateId || candidateId.trim() === "") {
           console.log(`No vote submitted for position: ${position}`);
           await client.query("ROLLBACK");
           return res.status(400).json({
-            error: "All positions must be voted or skipped.",
+            error: "All positions must have a selection (vote or skip).",
           });
         }
 
@@ -111,9 +132,9 @@ module.exports = function (io) {
 
           const updateResult = await client.query(
             `UPDATE candidates 
-             SET number_of_votes = number_of_votes + 1 
-             WHERE id = $1 AND position = $2
-             RETURNING id`,
+           SET number_of_votes = number_of_votes + 1 
+           WHERE id = $1 AND position = $2
+           RETURNING id`,
             [candidateIdInt, position]
           );
 
@@ -138,40 +159,40 @@ module.exports = function (io) {
 
       await client.query(
         `UPDATE votingstats 
-         SET voter_turnout = voter_turnout + 1,
-             total_votes_cast = total_votes_cast + $1,
-             skipped_votes = skipped_votes + $2`,
+       SET voter_turnout = voter_turnout + 1,
+           total_votes_cast = total_votes_cast + $1,
+           skipped_votes = skipped_votes + $2`,
         [totalVotesCast, skippedVotes]
       );
 
       await client.query(
         `UPDATE votingstats 
-         SET voter_turnoff = total_number_of_voters - voter_turnout`
+       SET voter_turnoff = total_number_of_voters - voter_turnout`
       );
 
       await client.query("COMMIT");
 
       const resultsQuery = `
-        SELECT 
-          c.id,
-          c.firstname,
-          c.lastname,
-          c.position, 
-          c.number_of_votes,
-          c.profilephoto,
-          vs.total_number_of_voters, 
-          vs.voter_turnout, 
-          vs.voter_turnoff, 
-          vs.total_votes_cast,
-          vs.skipped_votes
-        FROM 
-          candidates c
-        JOIN 
-          votingstats vs ON c.votingstats_id = vs.id
-        ORDER BY 
-          c.position ASC, 
-          c.id ASC
-      `;
+      SELECT 
+        c.id,
+        c.firstname,
+        c.lastname,
+        c.position, 
+        c.number_of_votes,
+        c.profilephoto,
+        vs.total_number_of_voters, 
+        vs.voter_turnout, 
+        vs.voter_turnoff, 
+        vs.total_votes_cast,
+        vs.skipped_votes
+      FROM 
+        candidates c
+      JOIN 
+        votingstats vs ON c.votingstats_id = vs.id
+      ORDER BY 
+        c.position ASC, 
+        c.id ASC
+    `;
       const { rows: results } = await client.query(resultsQuery);
 
       io.emit("updateResults", results);

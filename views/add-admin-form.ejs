@@ -7,19 +7,24 @@
     <title>Add Admin Form</title>
   </head>
   <body>
-    <div class="max-w-2xl mx-auto mt-10 p-6 bg-white rounded-lg shadow-lg">
-      <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold text-gray-800">Add New Admin</h2>
+    <div class="w-full max-w-2xl mx-auto bg-white rounded-lg shadow-2xl">
+      <!-- Header -->
+      <div class="flex justify-between items-center p-4 sm:p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-purple-600">
+        <h2 class="text-xl sm:text-2xl font-bold text-white">Add New Admin</h2>
         <button
           onclick="removeAdminForm()"
-          class="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+          class="modal-close-btn text-white hover:text-red-200 text-3xl font-bold leading-none transition-all"
+          aria-label="Close"
+          type="button"
         >
           &times;
         </button>
       </div>
 
-      <form action="/admin/add-admin" method="POST" class="space-y-4">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- Form -->
+      <form action="/admin/add-admin" method="POST" class="p-4 sm:p-6 space-y-4" id="add-admin-form">
+        <!-- First Name and Last Name -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label for="firstName" class="block text-sm font-medium text-gray-700 mb-1">
               First Name <span class="text-red-500">*</span>
@@ -29,7 +34,7 @@
               id="firstName"
               name="firstName"
               required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all"
               placeholder="Enter first name"
             />
           </div>
@@ -43,12 +48,13 @@
               id="lastName"
               name="lastName"
               required
-              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all"
               placeholder="Enter last name"
             />
           </div>
         </div>
 
+        <!-- Username -->
         <div>
           <label for="userName" class="block text-sm font-medium text-gray-700 mb-1">
             Username <span class="text-red-500">*</span>
@@ -58,11 +64,13 @@
             id="userName"
             name="userName"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all"
             placeholder="Enter username"
+            autocomplete="username"
           />
         </div>
 
+        <!-- Password -->
         <div>
           <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
             Password <span class="text-red-500">*</span>
@@ -73,12 +81,14 @@
             name="password"
             required
             minlength="4"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all"
             placeholder="Enter password"
+            autocomplete="new-password"
           />
           <p class="text-xs text-gray-500 mt-1">Minimum 4 characters</p>
         </div>
 
+        <!-- Phone Number -->
         <div>
           <label for="phone" class="block text-sm font-medium text-gray-700 mb-1">
             Phone Number
@@ -87,11 +97,13 @@
             type="tel"
             id="phone"
             name="phone"
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            placeholder="Enter phone number"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all"
+            placeholder="Enter phone number (optional)"
+            autocomplete="tel"
           />
         </div>
 
+        <!-- Role Selection -->
         <div>
           <label for="role" class="block text-sm font-medium text-gray-700 mb-1">
             Role <span class="text-red-500">*</span>
@@ -100,29 +112,32 @@
             id="role"
             name="role"
             required
-            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base transition-all"
           >
             <option value="">Select role</option>
             <option value="admin">Admin</option>
             <option value="super_admin">Super Admin</option>
           </select>
-          <p class="text-xs text-gray-500 mt-1">
-            Admin: Can approve voters and add candidates<br>
-            Super Admin: Full access including adding voters, admins, and uploading Excel files
-          </p>
+          <div class="mt-2 p-3 bg-blue-50 rounded-md border border-blue-200">
+            <p class="text-xs text-gray-700">
+              <strong class="text-indigo-700">Admin:</strong> Can approve voters and add candidates<br>
+              <strong class="text-purple-700">Super Admin:</strong> Full access including adding voters, admins, and uploading Excel files
+            </p>
+          </div>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6">
+        <!-- Action Buttons -->
+        <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200">
           <button
             type="button"
             onclick="removeAdminForm()"
-            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition"
+            class="w-full sm:w-auto px-6 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition-colors text-sm sm:text-base font-medium"
           >
             Cancel
           </button>
           <button
             type="submit"
-            class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
+            class="w-full sm:w-auto px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors text-sm sm:text-base font-medium"
           >
             Add Admin
           </button>
