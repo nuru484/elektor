@@ -1,10 +1,9 @@
 const socket = io();
 
-socket.on('updateResults', (results) => {
-  const resultsContainer = document.getElementById('results');
-  resultsContainer.innerHTML = ''; // Clear current results
+socket.on("updateResults", (results) => {
+  const resultsContainer = document.getElementById("results");
+  resultsContainer.innerHTML = "";
 
-  // Group and render the updated results as before
   const groupedResults = results.reduce((acc, result) => {
     if (!acc[result.position]) {
       acc[result.position] = [];
@@ -14,7 +13,7 @@ socket.on('updateResults', (results) => {
   }, {});
 
   Object.keys(groupedResults).forEach((position) => {
-    const section = document.createElement('section');
+    const section = document.createElement("section");
     section.innerHTML = `<h2>${position}</h2>`;
 
     const totalVotesForPosition = groupedResults[position].reduce(
@@ -22,7 +21,7 @@ socket.on('updateResults', (results) => {
       0
     );
 
-    const table = document.createElement('table');
+    const table = document.createElement("table");
     table.innerHTML = `
             <thead>
               <tr>
@@ -45,7 +44,7 @@ socket.on('updateResults', (results) => {
                 </tr>
               `
                 )
-                .join('')}
+                .join("")}
             </tbody>
           `;
     section.appendChild(table);

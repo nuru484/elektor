@@ -20,7 +20,6 @@ module.exports = function (io) {
         );
         const candidates = candidatesResult.rows;
 
-        // **NEW: Check if there are any candidates**
         if (candidates.length === 0) {
           return res.render("cast-votes", {
             voter,
@@ -61,7 +60,10 @@ module.exports = function (io) {
 
   router.post("/votes", async (req, res) => {
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ error: "Unauthorized, Please login" });
+      return res.status(401).json({
+        success: false,
+        error: "Unauthorized, Please login",
+      });
     }
 
     const client = await pool.connect();
@@ -79,7 +81,10 @@ module.exports = function (io) {
       if (voterRows.length === 0 || voterRows[0].votestatus === true) {
         console.log("Voter has already voted or does not exist");
         await client.query("ROLLBACK");
-        return res.status(403).json({ error: "You have already voted" });
+        return res.status(403).json({
+          success: false,
+          error: "You have already voted",
+        });
       }
 
       const { rows: positionsRows } = await client.query(
@@ -87,11 +92,11 @@ module.exports = function (io) {
       );
       const allPositions = positionsRows.map((row) => row.position);
 
-      // **NEW: Check if there are any positions/candidates available**
       if (allPositions.length === 0) {
         console.log("No candidates available for voting");
         await client.query("ROLLBACK");
         return res.status(400).json({
+          success: false,
           error:
             "No candidates available. Voting is not possible at this time.",
         });
@@ -105,11 +110,10 @@ module.exports = function (io) {
         const fieldName = `${position.replace(/\s+/g, "")}CandidateId`;
         const candidateId = req.body[fieldName];
 
-        // **UPDATED: More specific error message**
         if (!candidateId || candidateId.trim() === "") {
-          console.log(`No vote submitted for position: ${position}`);
           await client.query("ROLLBACK");
           return res.status(400).json({
+            success: false,
             error: "All positions must have a selection (vote or skip).",
           });
         }
@@ -120,14 +124,15 @@ module.exports = function (io) {
       for (const [position, candidateId] of Object.entries(votes)) {
         if (candidateId === "skipped") {
           skippedVotes++;
-          console.log(`Position ${position} was skipped`);
         } else {
           const candidateIdInt = parseInt(candidateId, 10);
 
           if (isNaN(candidateIdInt)) {
-            console.log(`Invalid candidate ID: ${candidateId}`);
             await client.query("ROLLBACK");
-            return res.status(400).json({ error: "Invalid candidate ID" });
+            return res.status(400).json({
+              success: false,
+              error: "Invalid candidate ID",
+            });
           }
 
           const updateResult = await client.query(
@@ -139,11 +144,9 @@ module.exports = function (io) {
           );
 
           if (updateResult.rowCount === 0) {
-            console.log(
-              `Candidate ${candidateIdInt} not found for position ${position}`
-            );
             await client.query("ROLLBACK");
             return res.status(400).json({
+              success: false,
               error: `Invalid candidate for position: ${position}`,
             });
           }
@@ -209,11 +212,11 @@ module.exports = function (io) {
         if (err) {
           console.error("Error during logout:", err);
           return res.status(500).json({
+            success: false,
             error: "Vote recorded but logout failed",
           });
         }
 
-        console.log("Voter logged out successfully");
         res.status(201).json({
           success: true,
           message: "Vote submitted successfully",
@@ -222,9 +225,10 @@ module.exports = function (io) {
     } catch (err) {
       console.error("Error occurred:", err);
       await client.query("ROLLBACK");
-      res
-        .status(500)
-        .json({ error: "An error occurred during vote submission" });
+      res.status(500).json({
+        success: false,
+        error: "An error occurred during vote submission",
+      });
     } finally {
       client.release();
     }

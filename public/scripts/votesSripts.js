@@ -15,9 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
   );
   const voteForm = document.getElementById("voteForm");
 
-  // **NEW: Check if there are any candidates on page load**
   if (voteButtons.length === 0 && skipButtons.length === 0) {
-    // No candidates available, disable submit button
     submitVoteButton.disabled = true;
     submitVoteButton.textContent = "No Candidates Available";
     submitVoteButton.style.opacity = "0.5";
@@ -30,23 +28,20 @@ document.addEventListener("DOMContentLoaded", function () {
       const position = this.getAttribute("data-position");
       const candidateId = this.getAttribute("data-candidate-id");
 
-      // Deselect all vote buttons for this position
       document
         .querySelectorAll(`.vote-button[data-position='${position}']`)
         .forEach((btn) => btn.classList.remove("selected"));
 
-      // Deselect the skip button for this position
       const skipButton = document.querySelector(
         `.skip-button[data-position='${position}']`
       );
+
       if (skipButton) {
         skipButton.classList.remove("selected");
       }
 
-      // Select the clicked vote button
       this.classList.add("selected");
 
-      // Update the hidden input with the selected candidate's ID
       const positionKey = position.replace(/\s+/g, "");
       const hiddenInput = document.getElementById(`hidden-${positionKey}`);
       if (hiddenInput) {
@@ -57,18 +52,15 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
-  // Handle skip button clicks
   skipButtons.forEach((button) => {
     button.addEventListener("click", function () {
       const position = this.getAttribute("data-position");
       const positionKey = position.replace(/\s+/g, "");
 
-      // Deselect all vote buttons for this position
       document
         .querySelectorAll(`.vote-button[data-position='${position}']`)
         .forEach((btn) => btn.classList.remove("selected"));
 
-      // Deselect any previously selected skip button for this position
       const skipButton = document.querySelector(
         `.skip-button[data-position='${position}']`
       );
@@ -76,37 +68,30 @@ document.addEventListener("DOMContentLoaded", function () {
         skipButton.classList.remove("selected");
       }
 
-      // Select the clicked skip button
       this.classList.add("selected");
 
-      // Set the hidden input to 'skipped'
       const hiddenInput = document.getElementById(`hidden-${positionKey}`);
       if (hiddenInput) {
         hiddenInput.value = "skipped";
       }
-
-      console.log(`Skipped position: ${position}`);
     });
   });
 
-  // Handle submit vote button
   submitVoteButton.addEventListener("click", function (e) {
     e.preventDefault();
 
-    // **NEW: Double-check if candidates exist**
     const hiddenInputs = document.querySelectorAll(
       'input[type="hidden"][required]'
     );
 
     if (hiddenInputs.length === 0) {
-      alert("No candidates available for voting at this time.");
+      showErrorAlert("No candidates available for voting at this time.");
       return;
     }
 
     const selectedCandidates = {};
     let allPositionsVoted = true;
 
-    // Loop through each position and get the selected candidate's name
     hiddenInputs.forEach((input) => {
       const value = input.value;
       const position = input.name.replace("CandidateId", "");
@@ -119,7 +104,6 @@ document.addEventListener("DOMContentLoaded", function () {
       if (value === "skipped") {
         selectedCandidates[position] = "Skipped";
       } else {
-        // Find the candidate name from the button
         const candidateButton = document.querySelector(
           `button[data-position][data-candidate-id="${value}"]`
         );
@@ -135,58 +119,133 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-    // Check if all positions have been voted or skipped
     if (!allPositionsVoted) {
-      confirmationModalSelect.style.display = "block";
+      confirmationModalSelect.style.display = "flex";
       return;
     }
 
-    // Populate the modal with the selected candidates
     selectedCandidatesList.innerHTML = "";
     for (const position in selectedCandidates) {
       const li = document.createElement("li");
-      li.textContent = `${position}: ${selectedCandidates[position]}`;
+      li.className =
+        "flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-200";
+      li.innerHTML = `
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-slate-700 rounded-lg flex items-center justify-center flex-shrink-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <div class="text-sm font-semibold text-gray-900">${position}</div>
+            <div class="text-sm ${
+              selectedCandidates[position] === "Skipped"
+                ? "text-gray-500 italic"
+                : "text-slate-700 font-medium"
+            }">${selectedCandidates[position]}</div>
+          </div>
+        </div>
+      `;
       selectedCandidatesList.appendChild(li);
     }
 
-    // Show the confirmation modal
-    confirmationModal.style.display = "block";
+    confirmationModal.style.display = "flex";
   });
 
-  // Handle confirm vote button
-  confirmVoteButton.addEventListener("click", function () {
-    confirmationModal.style.display = "none";
+  confirmVoteButton.addEventListener("click", async function () {
+    confirmVoteButton.disabled = true;
+    const originalHTML = confirmVoteButton.innerHTML;
+    confirmVoteButton.innerHTML = `
+      <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <span>Submitting...</span>
+    `;
+    try {
+      const formData = new FormData(voteForm);
 
-    // Submit the form normally (this will use POST with form data)
-    voteForm.submit();
+      const jsonData = {};
+      for (let [key, value] of formData.entries()) {
+        jsonData[key] = value;
+      }
 
-    // Show the "Vote Counted" modal after a short delay
-    setTimeout(() => {
-      voteCountedModal.style.display = "block";
-    }, 500);
+      const response = await fetch(voteForm.action, {
+        method: voteForm.method || "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(jsonData),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        confirmationModal.style.display = "none";
+        voteCountedModal.style.display = "flex";
+      } else {
+        confirmationModal.style.display = "none";
+        showErrorAlert(
+          data.error || "An error occurred while submitting your vote"
+        );
+        confirmVoteButton.disabled = false;
+        confirmVoteButton.innerHTML = originalHTML;
+      }
+    } catch (error) {
+      console.error("Error submitting vote:", error);
+      confirmationModal.style.display = "none";
+      showErrorAlert(
+        "Network error. Please check your connection and try again."
+      );
+      confirmVoteButton.disabled = false;
+      confirmVoteButton.innerHTML = originalHTML;
+    }
   });
 
-  // Handle cancel vote button
   cancelVoteButton.addEventListener("click", function () {
     confirmationModal.style.display = "none";
   });
 
-  // Handle back to vote all button
   backToVoteAllButton.addEventListener("click", function () {
     confirmationModalSelect.style.display = "none";
   });
 
-  // Handle close vote counted modal
   document
     .getElementById("closeVoteCountedModalButton")
     .addEventListener("click", function () {
-      window.location.href = "/userLogin";
+      window.location.href = "/voter/login";
     });
 
-  // Prevent back button navigation
+  function showErrorAlert(message) {
+    const alertDiv = document.createElement("div");
+    alertDiv.className = "fixed top-4 right-4 z-[150] max-w-md animate-modal";
+    alertDiv.innerHTML = `
+      <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg shadow-2xl">
+        <div class="flex items-start">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500 mt-0.5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div class="flex-1">
+            <p class="text-sm font-semibold text-red-800 mb-1">Error</p>
+            <p class="text-sm text-red-700">${message}</p>
+          </div>
+          <button onclick="this.parentElement.parentElement.parentElement.remove()" class="ml-3 text-red-500 hover:text-red-700">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(alertDiv);
+
+    setTimeout(() => {
+      alertDiv.remove();
+    }, 8000);
+  }
+
   window.onload = function () {
     if (performance.navigation.type === 2) {
-      window.location.href = "/userLogin";
+      window.location.href = "/voter/login";
     }
   };
 });

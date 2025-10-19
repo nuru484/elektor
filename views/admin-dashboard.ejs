@@ -280,52 +280,58 @@
     </div>
 
     <!-- Pagination -->
-    <% if (totalPages > 1) { %>
-    <nav aria-label="Page navigation" class="px-4 sm:px-10 mt-6">
-      <ul class="pagination flex justify-center items-center gap-2">
-        <% if (currentPage > 1) { %>
+   <% if (totalPages > 1) { %>
+  <nav aria-label="Page navigation" class="px-4 sm:px-10 mt-6">
+    <ul class="pagination flex justify-center items-center gap-2">
+      
+      <!-- Previous Button -->
+      <% if (currentPage > 1) { %>
         <li class="page-item">
-          
+          <a
             class="page-link px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm transition-colors"
             href="/admin/dashboard?page=<%= currentPage - 1 %>&limit=<%= limit %>"
           >Previous</a>
         </li>
-        <% } else { %>
+      <% } else { %>
         <li class="page-item disabled">
           <span class="page-link px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-400 text-sm">Previous</span>
         </li>
-        <% } %>
+      <% } %>
 
-        <% for (let i = 1; i <= totalPages; i++) { %>
-          <% if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) { %>
-            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
-              
-                class="page-link px-3 py-2 <%= i === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100' %> border border-gray-300 rounded text-sm transition-colors"
-                href="/admin/dashboard?page=<%= i %>&limit=<%= limit %>"
-              ><%= i %></a>
-            </li>
-          <% } else if (i === currentPage - 3 || i === currentPage + 3) { %>
-            <li class="page-item">
-              <span class="page-link px-3 py-2 text-gray-400 text-sm">...</span>
-            </li>
-          <% } %>
+      <!-- Page Numbers -->
+      <% for (let i = 1; i <= totalPages; i++) { %>
+        <% if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) { %>
+          <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+            <a
+              class="page-link px-3 py-2 <%= i === currentPage ? 'bg-blue-600 text-white' : 'bg-white text-gray-700 hover:bg-gray-100' %> border border-gray-300 rounded text-sm transition-colors"
+              href="/admin/dashboard?page=<%= i %>&limit=<%= limit %>"
+            ><%= i %></a>
+          </li>
+        <% } else if (i === currentPage - 3 || i === currentPage + 3) { %>
+          <li class="page-item">
+            <span class="page-link px-3 py-2 text-gray-400 text-sm">...</span>
+          </li>
         <% } %>
+      <% } %>
 
-        <% if (currentPage < totalPages) { %>
+      <!-- Next Button -->
+      <% if (currentPage < totalPages) { %>
         <li class="page-item">
-          
+          <a
             class="page-link px-3 py-2 bg-white border border-gray-300 rounded hover:bg-gray-100 text-sm transition-colors"
             href="/admin/dashboard?page=<%= currentPage + 1 %>&limit=<%= limit %>"
           >Next</a>
         </li>
-        <% } else { %>
+      <% } else { %>
         <li class="page-item disabled">
           <span class="page-link px-3 py-2 bg-gray-100 border border-gray-300 rounded text-gray-400 text-sm">Next</span>
         </li>
-        <% } %>
-      </ul>
-    </nav>
-    <% } %>
+      <% } %>
+
+    </ul>
+  </nav>
+<% } %>
+
 
     <!-- Approval Confirmation Modal -->
     <div id="approval-modal" class="modal fixed inset-0 bg-black bg-opacity-50 z-50" style="display: none;">

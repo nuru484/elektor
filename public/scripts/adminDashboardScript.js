@@ -1,102 +1,8 @@
-// Handle modals in admin dashboard
-
 document.addEventListener("DOMContentLoaded", function () {
-  let targetForm = null;
-  let isOtpRequest = false;
-
-  // Existing OTP and approval handlers
-  document
-    .querySelectorAll("button.otp-request, button.approve")
-    .forEach(function (button) {
-      button.addEventListener("click", function (e) {
-        e.preventDefault();
-
-        targetForm = button.closest("form");
-        isOtpRequest = button.classList.contains("otp-request");
-
-        const modal = document.getElementById("confirmation-modal");
-        const modalTitle = document.getElementById("modal-title");
-        const modalMessage = document.getElementById("modal-message");
-
-        if (modal && modalTitle && modalMessage) {
-          modal.style.display = "block";
-          modalTitle.textContent = isOtpRequest
-            ? "Request OTP"
-            : "Approve Student";
-          modalMessage.textContent = `Are you sure you want to ${
-            isOtpRequest ? "request OTP for" : "approve"
-          } this student?`;
-        }
-      });
-    });
-
-  const modalClose = document.querySelector(".modal-close");
-  if (modalClose) {
-    modalClose.addEventListener("click", function () {
-      const modal = document.getElementById("confirmation-modal");
-      if (modal) {
-        modal.style.display = "none";
-      }
-    });
-  }
-
-  const modalCancel = document.getElementById("modal-cancel");
-  if (modalCancel) {
-    modalCancel.addEventListener("click", function () {
-      const modal = document.getElementById("confirmation-modal");
-      if (modal) {
-        modal.style.display = "none";
-      }
-    });
-  }
-
-  const modalConfirm = document.getElementById("modal-confirm");
-  if (modalConfirm) {
-    modalConfirm.addEventListener("click", function () {
-      if (targetForm) {
-        if (isOtpRequest) {
-          const formData = new FormData(targetForm);
-
-          fetch(targetForm.action, {
-            method: "POST",
-            body: formData,
-          })
-            .then((response) => {
-              if (!response.ok) {
-                throw new Error("Network response was not ok");
-              }
-              return response.text();
-            })
-            .then((data) => {
-              const studentId = targetForm
-                .querySelector("button.otp-request")
-                .getAttribute("data-student-id");
-              const otpInput = document.querySelector(
-                `#otp-input-${studentId}`
-              );
-
-              if (otpInput) {
-                otpInput.style.display = "inline";
-              }
-            })
-            .catch(() => {
-              alert("Failed to request OTP.");
-            });
-        } else {
-          targetForm.submit();
-        }
-      }
-
-      const modal = document.getElementById("confirmation-modal");
-      if (modal) {
-        modal.style.display = "none";
-      }
-    });
-  }
-
   const approvalModalClose = document.querySelector(
     "#approval-modal .modal-close"
   );
+
   if (approvalModalClose) {
     approvalModalClose.addEventListener("click", closeApprovalModal);
   }
@@ -106,11 +12,9 @@ document.addEventListener("DOMContentLoaded", function () {
     approvalModalCancel.addEventListener("click", closeApprovalModal);
   }
 
-  // Close modals when clicking outside
   setupModalCloseOnOutsideClick();
 });
 
-// Voter approval functions
 let currentVoterId = null;
 
 function showApprovalModal(voterId, voterName) {
@@ -141,7 +45,6 @@ document.addEventListener("DOMContentLoaded", function () {
     approvalConfirmBtn.addEventListener("click", async function () {
       if (!currentVoterId) return;
 
-      // Add loading state
       approvalConfirmBtn.disabled = true;
       approvalConfirmBtn.textContent = "Approving...";
 
@@ -157,7 +60,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (response.ok && data.success) {
           closeApprovalModal();
-          // Reload the page to show updated status
           window.location.reload();
         } else {
           alert(data.error || "Failed to approve voter");
@@ -327,7 +229,6 @@ function removeAdminForm() {
 
 // Setup modal close on outside click
 function setupModalCloseOnOutsideClick() {
-  // Close form modals when clicking on overlay
   const formModals = [
     { modal: "voter-form-modal", closeFunc: removeVoterForm },
     { modal: "candidate-form-modal", closeFunc: removeCandidateForm },
@@ -339,7 +240,6 @@ function setupModalCloseOnOutsideClick() {
     const modalElement = document.getElementById(modal);
     if (modalElement) {
       modalElement.addEventListener("click", (e) => {
-        // Only close if clicking directly on the overlay (not the content)
         if (e.target === modalElement) {
           closeFunc();
         }
@@ -347,7 +247,6 @@ function setupModalCloseOnOutsideClick() {
     }
   });
 
-  // Close approval modal when clicking outside
   const approvalModal = document.getElementById("approval-modal");
   if (approvalModal) {
     approvalModal.addEventListener("click", (e) => {
@@ -361,7 +260,6 @@ function setupModalCloseOnOutsideClick() {
 // Handle escape key to close modals
 document.addEventListener("keydown", function (e) {
   if (e.key === "Escape") {
-    // Close any active modal
     const voterModal = document.getElementById("voter-form-modal");
     const candidateModal = document.getElementById("candidate-form-modal");
     const uploadModal = document.getElementById("upload-voters-form-modal");
@@ -552,6 +450,5 @@ style.textContent = `
     animation: slide-in 0.3s ease-out;
   }
 `;
-document.head.appendChild(style);
 
-console.log("Admin Dashboard Script Loaded Successfully");
+document.head.appendChild(style);
