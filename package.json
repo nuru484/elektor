@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node server",
-    "dev": "node --watch server"
+    "dev": "node --watch  --env-file .env server",
+    "db:setup": "node --env-file .env db/initialise.js"
   },
   "keywords": [],
   "author": "",
@@ -13,19 +14,21 @@
   "dependencies": {
     "@socket.io/redis-adapter": "^8.3.0",
     "axios": "^1.7.9",
-    "bcryptjs": "^2.4.3",
+    "bcrypt": "^6.0.0",
     "connect-redis": "^7.1.1",
-    "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "exceljs": "^4.4.0",
     "express": "^4.19.2",
+    "express-ejs-layouts": "^2.5.1",
     "express-session": "^1.18.0",
     "express-validator": "^7.2.0",
+    "multer": "^2.0.2",
     "passport": "^0.7.0",
     "passport-custom": "^1.1.1",
     "passport-local": "^1.0.0",
     "pg": "^8.12.0",
     "redis": "^4.7.0",
-    "socket.io": "^4.7.5"
+    "socket.io": "^4.7.5",
+    "xlsx": "^0.18.5"
   }
 }

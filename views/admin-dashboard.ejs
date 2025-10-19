@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/styles/adminDashboardStyles.css" />
+    <link rel="icon" href="/elektor-logo.png" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Admin Dashboard</title>
+  </head>
+  <body>
+    <div class="flex justify-between items-center px-10 py-4">
+      <h1>Admin Dashboard</h1>
+      <div class="text-sm text-gray-600">
+        Logged in as: <strong><%= user.firstName %> <%= user.lastName %></strong>
+        <% if (isSuperAdmin) { %>
+          <span class="ml-2 bg-purple-600 text-white px-2 py-1 rounded text-xs">Super Admin</span>
+        <% } else { %>
+          <span class="ml-2 bg-blue-600 text-white px-2 py-1 rounded text-xs">Admin</span>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Search form -->
+    <form action="/admin/search" method="GET">
+      <input type="text" name="query" placeholder="Search for a voter..." />
+      <button type="submit" class="search">Search</button>
+    </form>
+
+    <!-- Action Buttons -->
+    <div class="controls flex justify-between items-center px-10 py-6">
+      <h2>Registered Voters</h2>
+      <div class="add-btns flex justify-center items-center gap-6">
+        <% if (isSuperAdmin) { %>
+          <div class="add-voter">
+            <button
+              onclick="loadAddVoterForm()"
+              class="flex justify-center items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              <span class="text-sm">Add Voter</span>
+            </button>
+            <div id="voter-form"></div>
+          </div>
+          
+          <div class="upload-voters">
+            <button
+              onclick="loadUploadVotersForm()"
+              class="flex justify-center items-center gap-2 bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+            >
+              <span class="text-sm">Upload Voters (Excel)</span>
+            </button>
+            <div id="upload-voters-form"></div>
+          </div>
+
+          <div class="add-admin">
+            <button
+              onclick="loadAddAdminForm()"
+              class="flex justify-center items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700"
+            >
+              <span class="text-sm">Add Admin</span>
+            </button>
+            <div id="admin-form"></div>
+          </div>
+        <% } %>
+        
+        <div class="add-candidate">
+          <button
+            onclick="loadAddCandidateForm()"
+            class="flex justify-center items-center gap-2 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            <span class="text-sm">Add Candidate</span>
+          </button>
+          <div id="candidate-form"></div>
+        </div>
+      </div>
+    </div>
+
+    
+    <% if (voters.length === 0) { %>
+      <p>No voters found.</p>
+    <% } else { %>
+      <table>
+        <thead>
+          <tr>
+            <th>Voter ID</th>
+            <th>Name</th>
+            <th>Phone Number</th>
+            <th>Approval Status</th>
+            <th>Vote Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% voters.forEach(voter => { %>
+          <tr class="<%= voter.votestatus ? 'voted' : 'not-voted' %>">
+            <td><strong><%= voter.voterid %></strong></td>
+            <td class="name_column">
+              <%= voter.firstname %> <%= voter.lastname %>
+            </td>
+            <td>
+              <% if (voter.phone_number) { %>
+                +<%= voter.phone_number %>
+              <% } else { %>
+                <span class="no-data">N/A</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (voter.approvalstatus) { %>
+                <span class="badge bg-green-500 text-white px-2 py-1 rounded">Approved</span>
+              <% } else { %>
+                <span class="badge bg-yellow-500 text-white px-2 py-1 rounded">Pending</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (voter.votestatus) { %>
+                <span class="badge voted-badge">Voted</span>
+              <% } else { %>
+                <span class="badge not-voted-badge">Not Voted</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (!voter.approvalstatus) { %>
+                <button
+                  class="approve-btn bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm"
+                  data-voter-id="<%= voter.voterid %>"
+                  onclick="showApprovalModal('<%= voter.voterid %>', '<%= voter.firstname %> <%= voter.lastname %>')"
+                >
+                  Approve
+                </button>
+              <% } else { %>
+                <span class="text-gray-400 text-sm">Approved</span>
+              <% } %>
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    <% } %>
+
+    <!-- Pagination -->
+    <% if (totalPages > 1) { %>
+    <nav aria-label="Page navigation">
+      <ul class="pagination">
+        <% if (currentPage > 1) { %>
+        <li class="page-item">
+          
+            class="page-link"
+            href="/admin/dashboard?page=<%= currentPage - 1 %>&limit=<%= limit %>"
+            >Previous</a
+          >
+        </li>
+        <% } else { %>
+        <li class="page-item disabled">
+          <span class="page-link">Previous</span>
+        </li>
+        <% } %>
+
+        <% for (let i = 1; i <= totalPages; i++) { %>
+          <% if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) { %>
+            <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+              
+                class="page-link"
+                href="/admin/dashboard?page=<%= i %>&limit=<%= limit %>"
+                ><%= i %></a
+              >
+            </li>
+          <% } else if (i === currentPage - 3 || i === currentPage + 3) { %>
+            <li class="page-item">
+              <span class="page-link">...</span>
+            </li>
+          <% } %>
+        <% } %>
+
+        <% if (currentPage < totalPages) { %>
+        <li class="page-item">
+          
+            class="page-link"
+            href="/admin/dashboard?page=<%= currentPage + 1 %>&limit=<%= limit %>"
+            >Next</a
+          >
+        </li>
+        <% } else { %>
+        <li class="page-item disabled">
+          <span class="page-link">Next</span>
+        </li>
+        <% } %>
+      </ul>
+    </nav>
+    <% } %>
+
+    <!-- Approval Confirmation Modal -->
+    <div id="approval-modal" class="modal" style="display: none;">
+      <div class="modal-content bg-white rounded-lg p-6 max-w-md mx-auto mt-20">
+        <span class="modal-close cursor-pointer float-right text-2xl">&times;</span>
+        <h2 id="approval-modal-title" class="text-xl font-bold mb-4">Approve Voter</h2>
+        <p id="approval-modal-message" class="mb-6">Are you sure you want to approve this voter?</p>
+        <div class="flex justify-end gap-4">
+          <button
+            id="approval-modal-cancel"
+            class="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+          <button
+            id="approval-modal-confirm"
+            class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <form action="/admin/login" method="GET">
+      <button type="submit" class="logout-button">Logout</button>
+    </form>
+
+    <script>
+      // Pass isSuperAdmin to JavaScript
+      window.isSuperAdmin = <%= isSuperAdmin %>;
+    </script>
+    <script type="text/javascript" src="/scripts/adminDashboardScript.js"></script>
+  </body>
+</html>

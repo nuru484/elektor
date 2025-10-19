@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload Voters Form</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100 h-screen">
+    <div
+      class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10"
+    >
+      <div class="w-6/12 max-w-lg bg-white rounded-lg shadow-md p-6">
+        <!-- Modal header -->
+        <div class="flex items-center justify-between border-b pb-4 mb-3">
+          <h3 class="text-lg font-semibold text-gray-900">
+            Upload Voters from Excel
+          </h3>
+          <button
+            class="w-8 h-8 flex items-center justify-center bg-transparent hover:bg-gray-200 text-gray-400 rounded-lg"
+            onclick="removeUploadVotersForm()"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2"
+              stroke="currentColor"
+              class="w-4 h-4"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div class="mb-4 p-3 bg-blue-50 rounded">
+          <p class="text-sm text-gray-700">
+            <strong>Excel Format:</strong> Your Excel file should have columns: 
+            <code class="bg-gray-200 px-1">firstName</code>, 
+            <code class="bg-gray-200 px-1">lastName</code>, 
+            <code class="bg-gray-200 px-1">voterId</code>, 
+            <code class="bg-gray-200 px-1">phone_number</code> (optional)
+          </p>
+        </div>
+
+        <!-- Modal body -->
+        <form
+          id="uploadVotersForm"
+          action="/admin/upload-voters"
+          method="POST"
+          enctype="multipart/form-data"
+          class="space-y-4"
+        >
+          <!-- File input -->
+          <div class="flex flex-col items-center space-y-2">
+            <input
+              type="file"
+              name="votersFile"
+              id="votersFileInput"
+              accept=".xlsx,.xls"
+              class="hidden"
+              required
+            />
+            <label
+              for="votersFileInput"
+              class="flex flex-col items-center justify-center w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg cursor-pointer hover:bg-gray-200 transition"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke-width="1.5"
+                stroke="currentColor"
+                class="w-6 h-6 mb-2 text-gray-700"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M7.5 9L12 4.5m0 0L16.5 9M12 4.5V15"
+                />
+              </svg>
+              <span class="text-gray-700 text-sm">Choose Excel file</span>
+              <span class="italic text-xs text-gray-500">(Only .xlsx or .xls files)</span>
+            </label>
+            <span id="file-name" class="text-sm text-gray-600"></span>
+          </div>
+
+          <!-- Submit button -->
+          <div class="flex justify-end">
+            <button
+              type="submit"
+              class="bg-purple-600 text-white font-medium rounded-lg px-5 py-2.5 hover:bg-purple-700 transition focus:outline-none focus:ring-4 focus:ring-purple-300"
+            >
+              Upload Voters
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      document.getElementById('votersFileInput').addEventListener('change', function(e) {
+        const fileName = e.target.files[0]?.name || '';
+        document.getElementById('file-name').textContent = fileName ? `Selected: ${fileName}` : '';
+      });
+    </script>
+  </body>
+</html>

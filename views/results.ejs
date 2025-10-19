@@ -46,40 +46,46 @@
             <div class="p-4 bg-blue-50 rounded-lg">
               <p class="text-sm text-gray-600">Total Registered Voters</p>
               <p class="text-2xl font-semibold text-gray-800">
-                <%= votingStats.total_number_of_voters %>
+                <%= votingStats.total_number_of_voters || 0 %>
               </p>
             </div>
             <div class="p-4 bg-green-50 rounded-lg">
               <p class="text-sm text-gray-600">Voter Participation</p>
               <p class="text-2xl font-semibold text-gray-800">
-                <%= votingStats.voter_turnout %>
+                <%= votingStats.voter_turnout || 0 %>
               </p>
             </div>
             <div class="p-4 bg-red-50 rounded-lg">
               <p class="text-sm text-gray-600">Non-Participants</p>
               <p class="text-2xl font-semibold text-gray-800">
-                <%= votingStats.voter_turnoff %>
+                <%= votingStats.voter_turnoff || 0 %>
               </p>
             </div>
             <div class="p-4 bg-yellow-50 rounded-lg">
               <p class="text-sm text-gray-600">Skipped Ballots</p>
               <p class="text-2xl font-semibold text-gray-800">
-                <%= votingStats.skipped_votes %>
+                <%= votingStats.skipped_votes || 0 %>
               </p>
             </div>
             <div class="p-4 bg-purple-50 rounded-lg">
               <p class="text-sm text-gray-600">Total Ballots Submitted</p>
               <p class="text-2xl font-semibold text-gray-800">
-                <%= votingStats.total_votes_cast %>
+                <%= votingStats.total_votes_cast || 0 %>
               </p>
             </div>
           </div>
         </div>
 
         <!-- Group the results by position -->
-        <% const groupedResults = results.reduce((acc, result) => { if
-        (!acc[result.position]) { acc[result.position] = []; }
-        acc[result.position].push(result); return acc; }, {}); %>
+        <% 
+        const groupedResults = results.reduce((acc, result) => { 
+          if (!acc[result.position]) { 
+            acc[result.position] = []; 
+          }
+          acc[result.position].push(result); 
+          return acc; 
+        }, {}); 
+        %>
 
         <!-- Results Tables -->
         <div class="space-y-4">
@@ -91,8 +97,11 @@
               <%= position %>
             </h2>
 
-            <% let totalVotesForPosition = groupedResults[position].reduce((acc,
-            result) => acc + result.number_of_votes, 0); %>
+            <% 
+            let totalVotesForPosition = groupedResults[position].reduce((acc, result) => 
+              acc + (result.number_of_votes || 0), 0
+            ); 
+            %>
 
             <div class="overflow-x-auto">
               <table class="w-full">
@@ -122,12 +131,13 @@
                       <%= result.candidate_name %>
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-800">
-                      <%= result.number_of_votes %>
+                      <%= result.number_of_votes || 0 %>
                     </td>
                     <td class="px-6 py-4 text-sm text-gray-800">
-                      <% const percentage = totalVotesForPosition === 0 ? 0 :
-                      ((result.number_of_votes / totalVotesForPosition) *
-                      100).toFixed(2); %>
+                      <% 
+                      const percentage = totalVotesForPosition === 0 ? 0 :
+                        ((result.number_of_votes / totalVotesForPosition) * 100).toFixed(2); 
+                      %>
                       <div class="flex items-center gap-2">
                         <div class="w-24 bg-gray-200 rounded-full h-2">
                           <div
@@ -148,28 +158,15 @@
         </div>
       </div>
 
-      <div class="mt-8 text-center">
-        <a
-          href="/"
-          class="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-6 rounded-lg transition duration-200"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M10 19l-7-7m0 0l7-7m-7 7h18"
-            />
-          </svg>
-          Back To Dashboard
-        </a>
-      </div>
+           <a
+  href="/"
+  class="block w-full bg-white hover:bg-gray-50 text-gray-700 font-semibold my-4 py-3.5 px-6 rounded-xl text-center transition-all duration-200 border-2 border-gray-200 hover:border-gray-300 flex items-center justify-center gap-2 group shadow-sm hover:shadow-md"
+>
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+  </svg>
+  <span>Back to Dashboard</span>
+</a>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -188,23 +185,23 @@
             <div class="grid md:grid-cols-3 gap-4">
               <div class="p-4 bg-blue-50 rounded-lg">
                 <p class="text-sm text-gray-600">Total Registered Voters</p>
-                <p class="text-2xl font-semibold text-gray-800">${stats.total_number_of_voters}</p>
+                <p class="text-2xl font-semibold text-gray-800">${stats.total_number_of_voters || 0}</p>
               </div>
               <div class="p-4 bg-green-50 rounded-lg">
                 <p class="text-sm text-gray-600">Voter Participation</p>
-                <p class="text-2xl font-semibold text-gray-800">${stats.voter_turnout}</p>
+                <p class="text-2xl font-semibold text-gray-800">${stats.voter_turnout || 0}</p>
               </div>
               <div class="p-4 bg-red-50 rounded-lg">
                 <p class="text-sm text-gray-600">Non-Participants</p>
-                <p class="text-2xl font-semibold text-gray-800">${stats.voter_turnoff}</p>
+                <p class="text-2xl font-semibold text-gray-800">${stats.voter_turnoff || 0}</p>
               </div>
               <div class="p-4 bg-yellow-50 rounded-lg">
                 <p class="text-sm text-gray-600">Skipped Ballots</p>
-                <p class="text-2xl font-semibold text-gray-800">${stats.skipped_votes}</p>
+                <p class="text-2xl font-semibold text-gray-800">${stats.skipped_votes || 0}</p>
               </div>
               <div class="p-4 bg-purple-50 rounded-lg">
                 <p class="text-sm text-gray-600">Total Ballots Submitted</p>
-                <p class="text-2xl font-semibold text-gray-800">${stats.total_votes_cast}</p>
+                <p class="text-2xl font-semibold text-gray-800">${stats.total_votes_cast || 0}</p>
               </div>
             </div>
           </div>
@@ -232,7 +229,11 @@
         ];
 
         const orderedPositions = Object.keys(groupedResults).sort((a, b) => {
-          return desiredOrder.indexOf(a) - desiredOrder.indexOf(b);
+          const indexA = desiredOrder.indexOf(a);
+          const indexB = desiredOrder.indexOf(b);
+          if (indexA === -1) return 1;
+          if (indexB === -1) return -1;
+          return indexA - indexB;
         });
 
         return orderedPositions
@@ -261,14 +262,14 @@
                             totalVotesForPosition === 0
                               ? 0
                               : (
-                                  (result.number_of_votes /
+                                  ((result.number_of_votes || 0) /
                                     totalVotesForPosition) *
                                   100
                                 ).toFixed(2);
                           return `
                             <tr class="hover:bg-gray-50 transition-colors">
                               <td class="px-6 py-4 text-sm text-gray-800">${result.candidate_name}</td>
-                              <td class="px-6 py-4 text-sm text-gray-800">${result.number_of_votes}</td>
+                              <td class="px-6 py-4 text-sm text-gray-800">${result.number_of_votes || 0}</td>
                               <td class="px-6 py-4 text-sm text-gray-800">
                                 <div class="flex items-center gap-2">
                                   <div class="w-24 bg-gray-200 rounded-full h-2">
@@ -290,20 +291,26 @@
           .join('');
       }
 
-      socket.on('updateResults', (results) => {
+      socket.on('updateResults', (data) => {
         const resultsContainer = document.getElementById('results');
-        resultsContainer.innerHTML = '';
-        const tableContainer = document.createElement('div');
-        tableContainer.classList.add('table-container', 'grid', 'gap-6');
-        tableContainer.innerHTML = updateResultsTables(results);
-
-        if (results.length === 0) {
+        
+        if (!data || !data.results || data.results.length === 0) {
           resultsContainer.innerHTML =
             '<p class="text-center text-gray-500 text-lg">No results available.</p>';
           return;
         }
-        const stats = results[1];
-        resultsContainer.innerHTML = updateVotingStats(stats);
+
+        resultsContainer.innerHTML = '';
+        
+        // Update voting stats
+        if (data.votingStats) {
+          resultsContainer.innerHTML = updateVotingStats(data.votingStats);
+        }
+        
+        // Update results tables
+        const tableContainer = document.createElement('div');
+        tableContainer.classList.add('space-y-4');
+        tableContainer.innerHTML = updateResultsTables(data.results);
         resultsContainer.appendChild(tableContainer);
       });
     </script>

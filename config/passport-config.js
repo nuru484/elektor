@@ -1,46 +1,45 @@
-const LocalStrategy = require('passport-local').Strategy;
-const CustomStrategy = require('passport-custom').Strategy;
-const pool = require('../db/pool');
+const LocalStrategy = require("passport-local").Strategy;
+const CustomStrategy = require("passport-custom").Strategy;
+const bcrypt = require("bcrypt");
+const pool = require("../db/pool");
 
 const initialize = (passport) => {
-  // Student authentication
   passport.use(
-    'custom',
+    "custom",
     new CustomStrategy(async (req, done) => {
-      const { username } = req.body;
+      const { voterId } = req.body;
 
       try {
-        // Query for the student with the given name or index number
         const { rows } = await pool.query(
-          'SELECT * FROM students WHERE "student_name" = $1 OR "index_number" = $1;',
-          [username]
+          'SELECT * FROM voters WHERE "voterid" = $1;',
+          [voterId]
         );
         const user = rows[0];
+
         if (!user) {
           return done(null, false, {
-            message: 'Incorrect name or index number',
+            message: "Incorrect voter ID",
           });
         }
 
-        // Validate the student's status and voting status
-        if (user.voted === true) {
-          return done(null, false, { message: 'Student has voted already' });
-        }
-
-        if (user.status === true) {
-          return done(null, {
-            id: user.id,
-            type: 'student',
-            voted: user.voted,
-          });
-        } else {
+        if (user.approvalstatus !== true) {
           return done(null, false, {
-            message: 'Student account not approved by admin',
+            message: "You are not approved to vote, contact admin",
           });
         }
+
+        if (user.votestatus === true) {
+          return done(null, false, { message: "Voter has already voted" });
+        }
+
+        return done(null, {
+          id: user.id,
+          type: "voter",
+          voteStatus: user.votestatus,
+        });
       } catch (err) {
         return done(err, false, {
-          message: 'An error occurred during authentication',
+          message: "An error occurred during authentication",
         });
       }
     })
@@ -48,30 +47,38 @@ const initialize = (passport) => {
 
   // Admin authentication
   passport.use(
-    'admin',
+    "admin",
     new LocalStrategy(async (username, password, done) => {
       try {
-        // Query for the admin with the given name
         const { rows } = await pool.query(
-          'SELECT * FROM admin WHERE name = $1;',
+          "SELECT * FROM admin WHERE username = $1;",
           [username]
         );
         const admin = rows[0];
+
         if (!admin) {
           return done(null, false, {
-            message: 'No admin found with that name',
+            message: "Invalid credentials",
           });
         }
 
-        // Check password (assuming it's in plain text for this example)
-        if (admin.password === password) {
-          return done(null, { id: admin.id, type: 'admin' });
+        const isPasswordValid = await bcrypt.compare(password, admin.password);
+
+        if (isPasswordValid) {
+          return done(null, {
+            id: admin.id,
+            type: "admin",
+            role: admin.role,
+            firstName: admin.firstname,
+            lastName: admin.lastname,
+            userName: admin.username,
+          });
         } else {
-          return done(null, false, { message: 'Incorrect password' });
+          return done(null, false, { message: "Invalid credentials" });
         }
       } catch (err) {
         return done(err, false, {
-          message: 'An error occurred during authentication',
+          message: "An error occurred during authentication",
         });
       }
     })
@@ -87,29 +94,38 @@ const initialize = (passport) => {
     try {
       let user;
 
-      // Check user type stored in sessionData
-      if (sessionData.type === 'student') {
+      if (sessionData.type === "voter") {
         const { rows } = await pool.query(
-          'SELECT * FROM students WHERE id = $1;',
+          "SELECT * FROM voters WHERE id = $1;",
           [sessionData.id]
         );
         user = rows[0];
-      } else if (sessionData.type === 'admin') {
+        if (user) {
+          user.type = "voter";
+        }
+      } else if (sessionData.type === "admin") {
         const { rows } = await pool.query(
-          'SELECT * FROM admin WHERE id = $1;',
+          "SELECT * FROM admin WHERE id = $1;",
           [sessionData.id]
         );
         user = rows[0];
+        if (user) {
+          // Add type and normalize field names for consistency
+          user.type = "admin";
+          user.firstName = user.firstname;
+          user.lastName = user.lastname;
+          user.userName = user.username;
+        }
       }
 
       if (!user) {
-        return done(null, false, { message: 'User not found' });
+        return done(null, false, { message: "User not found" });
       } else {
         return done(null, user);
       }
     } catch (err) {
       return done(err, false, {
-        message: 'An error occurred during user deserialization',
+        message: "An error occurred during user deserialization",
       });
     }
   });
