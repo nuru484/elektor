@@ -59,40 +59,4 @@ router.post("/login", (req, res, next) => {
   })(req, res, next);
 });
 
-router.get("/search", async (req, res) => {
-  const searchTerm = req.query.query;
-  const page = parseInt(req.query.page) || 1;
-  const limit = parseInt(req.query.limit) || 10;
-  const offset = (page - 1) * limit;
-
-  try {
-    const { rows: voters } = await pool.query(
-      `SELECT * FROM voters 
-       WHERE (firstName ILIKE $1 OR lastName ILIKE $1 OR voterId ILIKE $1)
-       ORDER BY id DESC
-       LIMIT $2 OFFSET $3`,
-      [`%${searchTerm}%`, limit, offset]
-    );
-
-    const totalResult = await pool.query(
-      `SELECT COUNT(*) FROM voters 
-       WHERE (firstName ILIKE $1 OR lastName ILIKE $1 OR voterId ILIKE $1)`,
-      [`%${searchTerm}%`]
-    );
-    const totalVoters = parseInt(totalResult.rows[0].count);
-    const totalPages = Math.ceil(totalVoters / limit);
-
-    res.render("adminDashboard", {
-      voters,
-      currentPage: page,
-      totalPages: totalPages,
-      limit: limit,
-      searchQuery: searchTerm,
-    });
-  } catch (err) {
-    console.error("Error searching voters:", err);
-    return res.status(500).send("Server Error");
-  }
-});
-
 module.exports = router;

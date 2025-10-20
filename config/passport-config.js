@@ -110,7 +110,6 @@ const initialize = (passport) => {
         );
         user = rows[0];
         if (user) {
-          // Add type and normalize field names for consistency
           user.type = "admin";
           user.firstName = user.firstname;
           user.lastName = user.lastname;

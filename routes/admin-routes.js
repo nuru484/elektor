@@ -419,6 +419,99 @@ router.post("/approve-voter/:voterId", async (req, res) => {
   }
 });
 
+// Replace the existing search route in your admin routes file
+router.get("/search", async (req, res) => {
+  if (!req.isAuthenticated()) {
+    return res.redirect("/admin/login");
+  }
+
+  const searchTerm = req.query.query || "";
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
+
+  try {
+    const { rows: voters } = await pool.query(
+      `SELECT * FROM voters 
+       WHERE (firstName ILIKE $1 OR lastName ILIKE $1 OR voterId ILIKE $1)
+       ORDER BY id DESC
+       LIMIT $2 OFFSET $3`,
+      [`%${searchTerm}%`, limit, offset]
+    );
+
+    const totalResult = await pool.query(
+      `SELECT COUNT(*) FROM voters 
+       WHERE (firstName ILIKE $1 OR lastName ILIKE $1 OR voterId ILIKE $1)`,
+      [`%${searchTerm}%`]
+    );
+    const totalVoters = parseInt(totalResult.rows[0].count);
+    const totalPages = Math.ceil(totalVoters / limit);
+
+    res.setHeader(
+      "Cache-Control",
+      "no-store, no-cache, must-revalidate, proxy-revalidate"
+    );
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.setHeader("Surrogate-Control", "no-store");
+
+    res.render("admin-dashboard", {
+      voters,
+      currentPage: page,
+      totalPages: totalPages,
+      limit: limit,
+      totalVoters: totalVoters,
+      searchQuery: searchTerm,
+      user: req.user,
+      isSuperAdmin: req.user.role === "super_admin",
+    });
+  } catch (err) {
+    console.error("Error searching voters:", err);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to search voters.",
+    });
+  }
+});
+
+router.post("/demo-login", async (req, res, next) => {
+  try {
+    const username = process.env.DEFAULT_ADMIN_USERNAME;
+    const password = process.env.DEFAULT_ADMIN_PASSWORD;
+
+    // Set the body with correct field names
+    req.body = { username, password };
+
+    passport.authenticate("admin", (err, user, info) => {
+      if (err) {
+        return next(err);
+      }
+
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          error:
+            info?.message ||
+            "Demo login failed. Please check environment variables.",
+        });
+      }
+
+      req.logIn(user, (err) => {
+        if (err) {
+          return next(err);
+        }
+        return res.redirect("/admin/dashboard");
+      });
+    })(req, res, next);
+  } catch (err) {
+    console.error("Error during demo login:", err);
+    return res.status(500).json({
+      success: false,
+      error: "Demo login failed.",
+    });
+  }
+});
+
 // Admin Logout Route
 router.get("/logout-admin", (req, res) => {
   req.logout((err) => {
