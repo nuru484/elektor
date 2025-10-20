@@ -8,6 +8,7 @@ const { Server } = require("socket.io");
 const initializePassport = require("./config/passport-config");
 
 const app = express();
+app.set("trust proxy", 1);
 const server = http.createServer(app);
 const io = new Server(server);
 
@@ -20,6 +21,7 @@ app.use(
     cookie: {
       secure: process.env.NODE_ENV === "production",
       httpOnly: true,
+      sameSite: "lax", 
       maxAge: 24 * 60 * 60 * 1000,
     },
   })
