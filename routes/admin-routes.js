@@ -108,6 +108,7 @@ router.get("/dashboard", async (req, res) => {
         totalPages: totalPages,
         limit: limit,
         totalVoters: totalVoters,
+        searchQuery: "",
         user: req.user,
         isSuperAdmin: req.user.role === "super_admin",
       });
@@ -419,7 +420,6 @@ router.post("/approve-voter/:voterId", async (req, res) => {
   }
 });
 
-// Replace the existing search route in your admin routes file
 router.get("/search", async (req, res) => {
   if (!req.isAuthenticated()) {
     return res.redirect("/admin/login");
@@ -431,19 +431,70 @@ router.get("/search", async (req, res) => {
   const offset = (page - 1) * limit;
 
   try {
-    const { rows: voters } = await pool.query(
-      `SELECT * FROM voters 
-       WHERE (firstName ILIKE $1 OR lastName ILIKE $1 OR voterId ILIKE $1)
-       ORDER BY id DESC
-       LIMIT $2 OFFSET $3`,
-      [`%${searchTerm}%`, limit, offset]
-    );
+    const searchWords = searchTerm
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0);
 
-    const totalResult = await pool.query(
-      `SELECT COUNT(*) FROM voters 
-       WHERE (firstName ILIKE $1 OR lastName ILIKE $1 OR voterId ILIKE $1)`,
-      [`%${searchTerm}%`]
-    );
+    let query;
+    let countQuery;
+    let queryParams;
+    let countParams;
+
+    if (searchWords.length === 0) {
+      query = `SELECT * FROM voters ORDER BY id DESC LIMIT $1 OFFSET $2`;
+      queryParams = [limit, offset];
+
+      countQuery = `SELECT COUNT(*) FROM voters`;
+      countParams = [];
+    } else if (searchWords.length === 1) {
+      query = `SELECT * FROM voters 
+               WHERE (firstName ILIKE $1 OR lastName ILIKE $1 OR voterId ILIKE $1)
+               ORDER BY id DESC
+               LIMIT $2 OFFSET $3`;
+      queryParams = [`%${searchWords[0]}%`, limit, offset];
+
+      countQuery = `SELECT COUNT(*) FROM voters 
+                    WHERE (firstName ILIKE $1 OR lastName ILIKE $1 OR voterId ILIKE $1)`;
+      countParams = [`%${searchWords[0]}%`];
+    } else {
+      const fullNamePattern = `%${searchTerm}%`;
+      const wordPatterns = searchWords.map((word) => `%${word}%`);
+
+      const wordConditions = wordPatterns
+        .map(
+          (_, index) =>
+            `(firstName ILIKE $${index + 1} OR lastName ILIKE $${index + 1})`
+        )
+        .join(" AND ");
+
+      query = `SELECT * FROM voters 
+               WHERE (
+                 CONCAT(firstName, ' ', lastName) ILIKE $${
+                   wordPatterns.length + 1
+                 }
+                 OR ${wordConditions}
+                 OR voterId ILIKE $${wordPatterns.length + 1}
+               )
+               ORDER BY id DESC
+               LIMIT $${wordPatterns.length + 2} OFFSET $${
+        wordPatterns.length + 3
+      }`;
+      queryParams = [...wordPatterns, fullNamePattern, limit, offset];
+
+      countQuery = `SELECT COUNT(*) FROM voters 
+                    WHERE (
+                      CONCAT(firstName, ' ', lastName) ILIKE $${
+                        wordPatterns.length + 1
+                      }
+                      OR ${wordConditions}
+                      OR voterId ILIKE $${wordPatterns.length + 1}
+                    )`;
+      countParams = [...wordPatterns, fullNamePattern];
+    }
+
+    const { rows: voters } = await pool.query(query, queryParams);
+    const totalResult = await pool.query(countQuery, countParams);
     const totalVoters = parseInt(totalResult.rows[0].count);
     const totalPages = Math.ceil(totalVoters / limit);
 
