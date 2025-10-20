@@ -4,32 +4,43 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <script src="https://cdn.tailwindcss.com"></script>
-      <link rel="icon" href="/elektor-logo.png" />
-    <title>Elektor - Results</title>
+    <link rel="icon" href="/elektor-logo.png" />
+    <title>Elektor - Real-time Results</title>
   </head>
-  <body
-    class="min-h-screen bg-gradient-to-br from-blue-50 via-gray-50 to-purple-50 py-8 px-4"
-  >
-    <div class="max-w-7xl mx-auto">
-      <div class="text-center mb-8">
-        <h1
-          class="text-4xl font-bold text-gray-800 flex items-center justify-center gap-3"
-        >
-          Realtime Voting Results
-        </h1>
+  <body class="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 font-sans antialiased">
+    
+    <!-- Header with Logo -->
+    <header class="pt-6 pb-4 px-4">
+      <div class="container mx-auto max-w-7xl">
+        <div class="flex items-center justify-center gap-3 mb-6">
+          <div class="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <img src="/elektor-logo.png" alt="Elektor Logo" class="w-8 h-8 sm:w-10 sm:h-10 object-contain">
+          </div>
+          <span class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Elektor</span>
+        </div>
+        
+        <!-- Page Title -->
+        <div class="text-center">
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-3 leading-tight">
+            Real-time Voting Results
+          </h1>
+          <p class="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
+            Live election results updated automatically as votes are counted
+          </p>
+        </div>
       </div>
+    </header>
 
-      <div id="results" class="space-y-8">
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-6 sm:py-8 max-w-7xl">
+      <div id="results" class="space-y-6 sm:space-y-8">
+        
         <!-- Voting Statistics -->
-        <div
-          class="stats bg-white rounded-xl shadow-lg p-6 border border-gray-100 w-full"
-        >
-          <h2
-            class="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2"
-          >
+        <div class="stats bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border-2 border-gray-100">
+          <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2 flex-wrap">
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              class="h-6 w-6 text-blue-500"
+              class="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex-shrink-0"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -41,43 +52,47 @@
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
               />
             </svg>
-            Voting Statistics
+            <span>Voting Statistics</span>
           </h2>
-          <div class="grid md:grid-cols-3 gap-4">
-            <div class="p-4 bg-blue-50 rounded-lg">
-              <p class="text-sm text-gray-600">Total Registered Voters</p>
-              <p class="text-2xl font-semibold text-gray-800">
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
+            <div class="p-4 sm:p-5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 transition-transform hover:scale-105">
+              <p class="text-xs sm:text-sm text-gray-700 font-medium mb-1">Total Registered Voters</p>
+              <p class="text-2xl sm:text-3xl font-bold text-blue-600">
                 <%= votingStats.total_number_of_voters || 0 %>
               </p>
             </div>
-            <div class="p-4 bg-green-50 rounded-lg">
-              <p class="text-sm text-gray-600">Voter Participation</p>
-              <p class="text-2xl font-semibold text-gray-800">
+            
+            <div class="p-4 sm:p-5 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 transition-transform hover:scale-105">
+              <p class="text-xs sm:text-sm text-gray-700 font-medium mb-1">Voter Participation</p>
+              <p class="text-2xl sm:text-3xl font-bold text-green-600">
                 <%= votingStats.voter_turnout || 0 %>
               </p>
             </div>
-            <div class="p-4 bg-red-50 rounded-lg">
-              <p class="text-sm text-gray-600">Non-Participants</p>
-              <p class="text-2xl font-semibold text-gray-800">
+            
+            <div class="p-4 sm:p-5 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border border-red-200 transition-transform hover:scale-105">
+              <p class="text-xs sm:text-sm text-gray-700 font-medium mb-1">Non-Participants</p>
+              <p class="text-2xl sm:text-3xl font-bold text-red-600">
                 <%= votingStats.voter_turnoff || 0 %>
               </p>
             </div>
-            <div class="p-4 bg-yellow-50 rounded-lg">
-              <p class="text-sm text-gray-600">Skipped Ballots</p>
-              <p class="text-2xl font-semibold text-gray-800">
+            
+            <div class="p-4 sm:p-5 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl border border-yellow-200 transition-transform hover:scale-105">
+              <p class="text-xs sm:text-sm text-gray-700 font-medium mb-1">Skipped Ballots</p>
+              <p class="text-2xl sm:text-3xl font-bold text-yellow-600">
                 <%= votingStats.skipped_votes || 0 %>
               </p>
             </div>
-            <div class="p-4 bg-purple-50 rounded-lg">
-              <p class="text-sm text-gray-600">Total Ballots Submitted</p>
-              <p class="text-2xl font-semibold text-gray-800">
+            
+            <div class="p-4 sm:p-5 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 transition-transform hover:scale-105 sm:col-span-2 lg:col-span-1">
+              <p class="text-xs sm:text-sm text-gray-700 font-medium mb-1">Total Ballots Submitted</p>
+              <p class="text-2xl sm:text-3xl font-bold text-purple-600">
                 <%= votingStats.total_votes_cast || 0 %>
               </p>
             </div>
           </div>
         </div>
 
-        <!-- Group the results by position -->
         <% 
         const groupedResults = results.reduce((acc, result) => { 
           if (!acc[result.position]) { 
@@ -89,12 +104,10 @@
         %>
 
         <!-- Results Tables -->
-        <div class="space-y-4">
+        <div class="space-y-4 sm:space-y-6">
           <% Object.keys(groupedResults).forEach(position => { %>
-          <div
-            class="result-section bg-white rounded-xl shadow-lg p-6 border border-gray-100"
-          >
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+          <div class="result-section bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border-2 border-gray-100 transition-all hover:shadow-xl">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 pb-3 border-b-2 border-blue-100">
               <%= position %>
             </h2>
 
@@ -104,49 +117,44 @@
             ); 
             %>
 
-            <div class="overflow-x-auto">
+            <!-- Desktop Table View -->
+            <div class="hidden sm:block overflow-x-auto">
               <table class="w-full">
                 <thead>
-                  <tr class="bg-gray-50">
-                    <th
-                      class="px-6 py-3 text-left text-sm font-semibold text-gray-700"
-                    >
+                  <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                    <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 rounded-tl-lg">
                       Candidate Name
                     </th>
-                    <th
-                      class="px-6 py-3 text-left text-sm font-semibold text-gray-700"
-                    >
-                      Number of Votes
+                    <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">
+                      Votes
                     </th>
-                    <th
-                      class="px-6 py-3 text-left text-sm font-semibold text-gray-700"
-                    >
+                    <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 rounded-tr-lg">
                       Percentage
                     </th>
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                   <% groupedResults[position].forEach(result => { %>
-                  <tr class="hover:bg-gray-50 transition-colors">
-                    <td class="px-6 py-4 text-sm text-gray-800">
+                  <tr class="hover:bg-blue-50 transition-colors">
+                    <td class="px-4 py-4 text-sm sm:text-base text-gray-800 font-medium">
                       <%= result.candidate_name %>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-800">
+                    <td class="px-4 py-4 text-sm sm:text-base text-gray-800 font-semibold">
                       <%= result.number_of_votes || 0 %>
                     </td>
-                    <td class="px-6 py-4 text-sm text-gray-800">
+                    <td class="px-4 py-4 text-sm sm:text-base text-gray-800">
                       <% 
                       const percentage = totalVotesForPosition === 0 ? 0 :
                         ((result.number_of_votes / totalVotesForPosition) * 100).toFixed(2); 
                       %>
-                      <div class="flex items-center gap-2">
-                        <div class="w-24 bg-gray-200 rounded-full h-2">
+                      <div class="flex items-center gap-3">
+                        <div class="flex-1 max-w-xs bg-gray-200 rounded-full h-2.5">
                           <div
-                            class="bg-blue-500 rounded-full h-2"
+                            class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-full h-2.5 transition-all duration-500"
                             style="width: <%= percentage %>%"
                           ></div>
                         </div>
-                        <%= percentage %>%
+                        <span class="font-semibold text-blue-600 min-w-[3rem]"><%= percentage %>%</span>
                       </div>
                     </td>
                   </tr>
@@ -154,21 +162,68 @@
                 </tbody>
               </table>
             </div>
+
+            <!-- Mobile Card View -->
+            <div class="sm:hidden space-y-3">
+              <% groupedResults[position].forEach(result => { %>
+              <div class="bg-gradient-to-br from-gray-50 to-white p-4 rounded-xl border-2 border-gray-100 hover:border-blue-200 transition-all">
+                <div class="flex justify-between items-start mb-3">
+                  <h3 class="font-semibold text-gray-900 text-base">
+                    <%= result.candidate_name %>
+                  </h3>
+                  <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold">
+                    <%= result.number_of_votes || 0 %>
+                  </span>
+                </div>
+                <% 
+                const percentage = totalVotesForPosition === 0 ? 0 :
+                  ((result.number_of_votes / totalVotesForPosition) * 100).toFixed(2); 
+                %>
+                <div class="space-y-2">
+                  <div class="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-full h-3 transition-all duration-500"
+                      style="width: <%= percentage %>%"
+                    ></div>
+                  </div>
+                  <p class="text-right text-sm font-bold text-blue-600"><%= percentage %>%</p>
+                </div>
+              </div>
+              <% }); %>
+            </div>
           </div>
           <% }); %>
         </div>
       </div>
 
-           <a
-  href="/"
-  class="block w-full bg-white hover:bg-gray-50 text-gray-700 font-semibold my-4 py-3.5 px-6 rounded-xl text-center transition-all duration-200 border-2 border-gray-200 hover:border-gray-300 flex items-center justify-center gap-2 group shadow-sm hover:shadow-md"
->
-  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-  </svg>
-  <span>Back to Dashboard</span>
-</a>
-    </div>
+    
+         <a
+        href="/"
+        class="block w-full max-w-md mx-auto bg-white hover:bg-gray-50 text-gray-700 font-semibold mt-8 py-3.5 px-6 rounded-xl text-center transition-all duration-200 border-2 border-gray-200 hover:border-gray-300 flex items-center justify-center gap-2 group shadow-md hover:shadow-lg"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        <span>Back to Dashboard</span>
+      </a>
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-6 sm:py-8 mt-8 sm:mt-12">
+      <div class="container mx-auto px-4 max-w-7xl">
+        <div class="text-center">
+          <p class="text-xs sm:text-sm text-gray-500 mb-2">
+            Results update automatically in real-time
+          </p>
+          <p class="text-xs text-gray-400 flex items-center justify-center gap-2 flex-wrap">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span>Powered by <span class="font-semibold text-gray-600">Elektor</span> • Secure Voting System</span>
+          </p>
+        </div>
+      </div>
+    </footer>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -176,33 +231,33 @@
 
       function updateVotingStats(stats) {
         return `
-          <div class="stats bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-            <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div class="stats bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border-2 border-gray-100">
+            <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 flex items-center gap-2 flex-wrap">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              Voting Statistics
+              <span>Voting Statistics</span>
             </h2>
-            <div class="grid md:grid-cols-3 gap-4">
-              <div class="p-4 bg-blue-50 rounded-lg">
-                <p class="text-sm text-gray-600">Total Registered Voters</p>
-                <p class="text-2xl font-semibold text-gray-800">${stats.total_number_of_voters || 0}</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 sm:gap-4">
+              <div class="p-4 sm:p-5 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border border-blue-200 transition-transform hover:scale-105">
+                <p class="text-xs sm:text-sm text-gray-700 font-medium mb-1">Total Registered Voters</p>
+                <p class="text-2xl sm:text-3xl font-bold text-blue-600">${stats.total_number_of_voters || 0}</p>
               </div>
-              <div class="p-4 bg-green-50 rounded-lg">
-                <p class="text-sm text-gray-600">Voter Participation</p>
-                <p class="text-2xl font-semibold text-gray-800">${stats.voter_turnout || 0}</p>
+              <div class="p-4 sm:p-5 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border border-green-200 transition-transform hover:scale-105">
+                <p class="text-xs sm:text-sm text-gray-700 font-medium mb-1">Voter Participation</p>
+                <p class="text-2xl sm:text-3xl font-bold text-green-600">${stats.voter_turnout || 0}</p>
               </div>
-              <div class="p-4 bg-red-50 rounded-lg">
-                <p class="text-sm text-gray-600">Non-Participants</p>
-                <p class="text-2xl font-semibold text-gray-800">${stats.voter_turnoff || 0}</p>
+              <div class="p-4 sm:p-5 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border border-red-200 transition-transform hover:scale-105">
+                <p class="text-xs sm:text-sm text-gray-700 font-medium mb-1">Non-Participants</p>
+                <p class="text-2xl sm:text-3xl font-bold text-red-600">${stats.voter_turnoff || 0}</p>
               </div>
-              <div class="p-4 bg-yellow-50 rounded-lg">
-                <p class="text-sm text-gray-600">Skipped Ballots</p>
-                <p class="text-2xl font-semibold text-gray-800">${stats.skipped_votes || 0}</p>
+              <div class="p-4 sm:p-5 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl border border-yellow-200 transition-transform hover:scale-105">
+                <p class="text-xs sm:text-sm text-gray-700 font-medium mb-1">Skipped Ballots</p>
+                <p class="text-2xl sm:text-3xl font-bold text-yellow-600">${stats.skipped_votes || 0}</p>
               </div>
-              <div class="p-4 bg-purple-50 rounded-lg">
-                <p class="text-sm text-gray-600">Total Ballots Submitted</p>
-                <p class="text-2xl font-semibold text-gray-800">${stats.total_votes_cast || 0}</p>
+              <div class="p-4 sm:p-5 bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border border-purple-200 transition-transform hover:scale-105 sm:col-span-2 lg:col-span-1">
+                <p class="text-xs sm:text-sm text-gray-700 font-medium mb-1">Total Ballots Submitted</p>
+                <p class="text-2xl sm:text-3xl font-bold text-purple-600">${stats.total_votes_cast || 0}</p>
               </div>
             </div>
           </div>
@@ -244,48 +299,84 @@
               0
             );
 
-            return `
-              <div class="result-section bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-                <h2 class="text-2xl font-semibold text-gray-800 mb-4">${position}</h2>
-                <div class="overflow-x-auto">
-                  <table class="w-full">
-                    <thead>
-                      <tr class="bg-gray-50">
-                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Candidate Name</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Number of Votes</th>
-                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Percentage</th>
-                      </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200">
-                      ${groupedResults[position]
-                        .map((result) => {
-                          const percentage =
-                            totalVotesForPosition === 0
-                              ? 0
-                              : (
-                                  ((result.number_of_votes || 0) /
-                                    totalVotesForPosition) *
-                                  100
-                                ).toFixed(2);
-                          return `
-                            <tr class="hover:bg-gray-50 transition-colors">
-                              <td class="px-6 py-4 text-sm text-gray-800">${result.candidate_name}</td>
-                              <td class="px-6 py-4 text-sm text-gray-800">${result.number_of_votes || 0}</td>
-                              <td class="px-6 py-4 text-sm text-gray-800">
-                                <div class="flex items-center gap-2">
-                                  <div class="w-24 bg-gray-200 rounded-full h-2">
-                                    <div class="bg-blue-500 rounded-full h-2" style="width: ${percentage}%"></div>
-                                  </div>
-                                  ${percentage}%
+            const desktopTable = `
+              <div class="hidden sm:block overflow-x-auto">
+                <table class="w-full">
+                  <thead>
+                    <tr class="bg-gradient-to-r from-gray-50 to-gray-100">
+                      <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 rounded-tl-lg">Candidate Name</th>
+                      <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Votes</th>
+                      <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700 rounded-tr-lg">Percentage</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-gray-200">
+                    ${groupedResults[position]
+                      .map((result) => {
+                        const percentage =
+                          totalVotesForPosition === 0
+                            ? 0
+                            : (
+                                ((result.number_of_votes || 0) /
+                                  totalVotesForPosition) *
+                                100
+                              ).toFixed(2);
+                        return `
+                          <tr class="hover:bg-blue-50 transition-colors">
+                            <td class="px-4 py-4 text-sm sm:text-base text-gray-800 font-medium">${result.candidate_name}</td>
+                            <td class="px-4 py-4 text-sm sm:text-base text-gray-800 font-semibold">${result.number_of_votes || 0}</td>
+                            <td class="px-4 py-4 text-sm sm:text-base text-gray-800">
+                              <div class="flex items-center gap-3">
+                                <div class="flex-1 max-w-xs bg-gray-200 rounded-full h-2.5">
+                                  <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-full h-2.5 transition-all duration-500" style="width: ${percentage}%"></div>
                                 </div>
-                              </td>
-                            </tr>
-                          `;
-                        })
-                        .join('')}
-                    </tbody>
-                  </table>
-                </div>
+                                <span class="font-semibold text-blue-600 min-w-[3rem]">${percentage}%</span>
+                              </div>
+                            </td>
+                          </tr>
+                        `;
+                      })
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            `;
+
+            const mobileCards = `
+              <div class="sm:hidden space-y-3">
+                ${groupedResults[position]
+                  .map((result) => {
+                    const percentage =
+                      totalVotesForPosition === 0
+                        ? 0
+                        : (
+                            ((result.number_of_votes || 0) /
+                              totalVotesForPosition) *
+                            100
+                          ).toFixed(2);
+                    return `
+                      <div class="bg-gradient-to-br from-gray-50 to-white p-4 rounded-xl border-2 border-gray-100 hover:border-blue-200 transition-all">
+                        <div class="flex justify-between items-start mb-3">
+                          <h3 class="font-semibold text-gray-900 text-base">${result.candidate_name}</h3>
+                          <span class="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold">${result.number_of_votes || 0}</span>
+                        </div>
+                        <div class="space-y-2">
+                          <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-full h-3 transition-all duration-500" style="width: ${percentage}%"></div>
+                          </div>
+                          <p class="text-right text-sm font-bold text-blue-600">${percentage}%</p>
+                        </div>
+                      </div>
+                    `;
+                  })
+                  .join('')}
+              </div>
+            `;
+
+            return `
+              <div class="result-section bg-white rounded-xl sm:rounded-2xl shadow-lg p-4 sm:p-6 lg:p-8 border-2 border-gray-100 transition-all hover:shadow-xl">
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-900 mb-4 sm:mb-6 pb-3 border-b-2 border-blue-100">${position}</h2>
+                ${desktopTable}
+                ${mobileCards}
               </div>
             `;
           })
@@ -297,20 +388,18 @@
         
         if (!data || !data.results || data.results.length === 0) {
           resultsContainer.innerHTML =
-            '<p class="text-center text-gray-500 text-lg">No results available.</p>';
+            '<div class="bg-white rounded-2xl shadow-lg p-8 text-center border-2 border-gray-100"><p class="text-gray-500 text-lg">No results available at this time.</p></div>';
           return;
         }
 
         resultsContainer.innerHTML = '';
         
-        // Update voting stats
         if (data.votingStats) {
           resultsContainer.innerHTML = updateVotingStats(data.votingStats);
         }
         
-        // Update results tables
         const tableContainer = document.createElement('div');
-        tableContainer.classList.add('space-y-4');
+        tableContainer.classList.add('space-y-4', 'sm:space-y-6');
         tableContainer.innerHTML = updateResultsTables(data.results);
         resultsContainer.appendChild(tableContainer);
       });
