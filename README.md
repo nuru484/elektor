@@ -83,7 +83,9 @@ PostgreSQL Database (pg + Redis Adapter)
 
 | Section | Image |
 |----------|--------|
-| Admin Dashboard | ![Admin Dashboard](public/og-image.png) |
+| Home | ![Home](public/docs/home.png) |
+| Admin Login | ![Admin Login](public/docs/admin-login.png) |
+| Admin Dashboard | ![Admin Dashboard](public/docs/admin-dashboard.png) |
 | Voting Portal | ![Voting Portal](docs/voting-portal.png) |
 | Results Page | ![Results Page](docs/results-page.png) |
 
