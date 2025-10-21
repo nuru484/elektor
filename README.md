@@ -135,7 +135,7 @@ npm run db:setup	Creates database tables and  structure via db/initialise.js
 ```
 
 ### 🌐 Deployment
-Live Demo: https://elektor.onrender.com
+Live Demo: https://elektor.manuru.dev
 
 Deployed via Render with a connected PostgreSQL instance.
 
