@@ -64,7 +64,7 @@ It enables administrators to manage elections digitally — adding voters, candi
 | **Authentication** | Passport.js |
 | **Real-time Updates** | Socket.IO |
 | **Session Storage** | Express Session | You can configure to use Redis session
-| **File Handling** | Multer, ExcelJS, XLSX |
+| **File Handling** | Multer, XLSX |
 | **Deployment** | Render |
 
 ---
@@ -84,10 +84,9 @@ PostgreSQL Database (pg + Redis Adapter)
 | Section | Image |
 |----------|--------|
 | Home | ![Home](public/docs/home.png) |
-| Admin Login | ![Admin Login](public/docs/admin-login.png) |
 | Admin Dashboard | ![Admin Dashboard](public/docs/admin-dashboard.png) |
-| Voting Portal | ![Voting Portal](docs/voting-portal.png) |
-| Results Page | ![Results Page](docs/results-page.png) |
+| Voting Portal | ![Voting Portal](public/docs/voting-portal.png) |
+| Results Page | ![Results Page](public/docs/results-page.png) |
 
 ---
 
