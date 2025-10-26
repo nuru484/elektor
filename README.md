@@ -85,8 +85,6 @@ PostgreSQL Database (pg + Redis Adapter)
 |----------|--------|
 | Home | ![Home](public/docs/home.png) |
 | Admin Dashboard | ![Admin Dashboard](public/docs/admin-dashboard.png) |
-| Voting Portal | ![Voting Portal](public/docs/voting-portal.png) |
-| Results Page | ![Results Page](public/docs/results-page.png) |
 
 ---
 
