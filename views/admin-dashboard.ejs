@@ -130,10 +130,10 @@
       }
     </style>
   </head>
-  <body class="min-h-screen bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100">
+  <body class="min-h-screen bg-slate-50">
     
     <!-- Header Section -->
-    <div class="w-full bg-gradient-to-r from-slate-700 to-slate-900 shadow-lg">
+    <div class="w-full bg-slate-800 shadow-lg">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div class="flex items-center gap-3">
@@ -180,7 +180,7 @@
       />
       <button 
         type="submit" 
-        class="bg-gradient-to-r from-slate-700 to-slate-900 hover:from-slate-800 hover:to-black text-white px-6 py-3 rounded-xl font-semibold whitespace-nowrap text-sm sm:text-base transition-all shadow-lg"
+        class="bg-slate-800 hover:bg-slate-900 text-white px-6 py-3 rounded-xl font-semibold whitespace-nowrap text-sm sm:text-base transition-all shadow-lg"
       >
         <span class="hidden sm:inline">Search</span>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -219,7 +219,7 @@
             <% if (isSuperAdmin) { %>
               <button
                 onclick="loadAddVoterForm()"
-                class="flex justify-center items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-lg"
+                class="flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-lg"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
@@ -229,7 +229,7 @@
               
               <button
                 onclick="loadUploadVotersForm()"
-                class="flex justify-center items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-lg"
+                class="flex justify-center items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-lg"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -239,7 +239,7 @@
 
               <button
                 onclick="loadAddAdminForm()"
-                class="flex justify-center items-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-lg"
+                class="flex justify-center items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-lg"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -248,7 +248,7 @@
               </button>
                <button
               onclick="loadAddCandidateForm()"
-              class="flex justify-center items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-lg"
+              class="flex justify-center items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-lg font-semibold text-sm transition-all shadow-lg"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -278,7 +278,7 @@
         <div class="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
           <div class="table-container">
             <table class="w-full">
-              <thead class="bg-gradient-to-r from-slate-100 to-gray-100 border-b-2 border-slate-200">
+              <thead class="bg-slate-100 border-b-2 border-slate-200">
                 <tr>
                   <th class="px-6 py-4 text-left text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wider">Voter ID</th>
                   <th class="px-6 py-4 text-left text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wider">Name</th>
@@ -403,7 +403,7 @@
         <% if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) { %>
           <li class="page-item <%= i === currentPage ? 'active' : '' %>">
             <a
-              class="flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-2 <%= i === currentPage ? 'bg-gradient-to-r from-slate-700 to-slate-900 text-white border-2 border-slate-900' : 'bg-white text-slate-700 border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-400' %> rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200"
+              class="flex items-center justify-center px-3 py-1.5 sm:px-4 sm:py-2 <%= i === currentPage ? 'bg-slate-800 text-white border-2 border-slate-900' : 'bg-white text-slate-700 border-2 border-slate-200 hover:bg-slate-50 hover:border-slate-400' %> rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200"
               href="<%= baseUrl %>?page=<%= i %>&limit=<%= limit %><%= searchParam %>"
             ><%= i %></a>
           </li>
@@ -445,7 +445,7 @@
     <!-- Approval Confirmation Modal -->
     <div id="approval-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] hidden items-center justify-center p-4">
       <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full animate-modal">
-        <div class="bg-gradient-to-r from-slate-700 to-slate-900 px-6 py-5 rounded-t-2xl">
+        <div class="bg-slate-800 px-6 py-5 rounded-t-2xl">
           <div class="flex justify-between items-center">
             <h3 id="approval-modal-title" class="text-xl font-bold text-white">Approve Voter</h3>
             <button class="modal-close text-white hover:text-red-300 text-3xl font-bold leading-none transition-all" aria-label="Close">&times;</button>
@@ -456,7 +456,7 @@
           <div class="flex flex-col sm:flex-row gap-3">
             <button
               id="approval-modal-confirm"
-              class="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
+              class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2"
             >
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />

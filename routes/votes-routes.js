@@ -1,17 +1,26 @@
 // routes/votes-routes.js
 const express = require("express");
-const router = express.Router();
 const pool = require("../db/pool");
+
+// Rolls back without letting a failing ROLLBACK throw out of a catch block
+// (which would become an unhandled rejection).
+async function safeRollback(client) {
+  try {
+    await client.query("ROLLBACK");
+  } catch (rollbackErr) {
+    console.error("Rollback failed:", rollbackErr);
+  }
+}
 
 module.exports = function (io) {
   const router = express.Router();
 
   router.get("/cast-votes", async (req, res) => {
-    if (req.isAuthenticated()) {
+    if (req.isAuthenticated() && req.user.type === "voter") {
       const voter = req.user;
 
       if (voter.votestatus === true) {
-        return res.redirect("/login");
+        return res.redirect("/voter/login");
       }
 
       try {
@@ -54,12 +63,12 @@ module.exports = function (io) {
         return res.status(500).json({ error: "Failed to fetch candidates." });
       }
     } else {
-      res.redirect("/login");
+      res.redirect("/voter/login");
     }
   });
 
   router.post("/votes", async (req, res) => {
-    if (!req.isAuthenticated()) {
+    if (!req.isAuthenticated() || req.user.type !== "voter") {
       return res.status(401).json({
         success: false,
         error: "Unauthorized, Please login",
@@ -80,7 +89,7 @@ module.exports = function (io) {
 
       if (voterRows.length === 0 || voterRows[0].votestatus === true) {
         console.log("Voter has already voted or does not exist");
-        await client.query("ROLLBACK");
+        await safeRollback(client);
         return res.status(403).json({
           success: false,
           error: "You have already voted",
@@ -93,7 +102,7 @@ module.exports = function (io) {
       const allPositions = positionsRows.map((row) => row.position);
 
       if (allPositions.length === 0) {
-        await client.query("ROLLBACK");
+        await safeRollback(client);
         return res.status(400).json({
           success: false,
           error:
@@ -110,7 +119,7 @@ module.exports = function (io) {
         const candidateId = req.body[fieldName];
 
         if (!candidateId || candidateId.trim() === "") {
-          await client.query("ROLLBACK");
+          await safeRollback(client);
           return res.status(400).json({
             success: false,
             error: "All positions must have a selection (vote or skip).",
@@ -127,7 +136,7 @@ module.exports = function (io) {
           const candidateIdInt = parseInt(candidateId, 10);
 
           if (isNaN(candidateIdInt)) {
-            await client.query("ROLLBACK");
+            await safeRollback(client);
             return res.status(400).json({
               success: false,
               error: "Invalid candidate ID",
@@ -143,7 +152,7 @@ module.exports = function (io) {
           );
 
           if (updateResult.rowCount === 0) {
-            await client.query("ROLLBACK");
+            await safeRollback(client);
             return res.status(400).json({
               success: false,
               error: `Invalid candidate for position: ${position}`,
@@ -174,30 +183,28 @@ module.exports = function (io) {
 
       await client.query("COMMIT");
 
-      const resultsQuery = `
-      SELECT 
-        c.id,
-        c.firstname,
-        c.lastname,
-        c.position, 
-        c.number_of_votes,
-        c.profilephoto,
-        vs.total_number_of_voters, 
-        vs.voter_turnout, 
-        vs.voter_turnoff, 
-        vs.total_votes_cast,
-        vs.skipped_votes
-      FROM 
-        candidates c
-      JOIN 
-        votingstats vs ON c.votingstats_id = vs.id
-      ORDER BY 
-        c.position ASC, 
-        c.id ASC
-    `;
-      const { rows: results } = await client.query(resultsQuery);
+      // Emit candidates + the single global stats row separately in the
+      // { results, votingStats } shape the results page expects. (The old
+      // JOIN on candidates.votingstats_id always returned zero rows.)
+      const { rows: results } = await client.query(`
+        SELECT
+          id,
+          CONCAT(firstname, ' ', lastname) AS candidate_name,
+          position,
+          number_of_votes,
+          profilephoto
+        FROM candidates
+        ORDER BY position ASC, id ASC
+      `);
 
-      io.emit("updateResults", results);
+      const { rows: statsRows } = await client.query(
+        "SELECT * FROM votingstats ORDER BY id ASC LIMIT 1"
+      );
+
+      io.emit("updateResults", {
+        results,
+        votingStats: statsRows[0] || {},
+      });
 
       res.setHeader("Surrogate-Control", "no-store");
       res.setHeader(
@@ -223,7 +230,7 @@ module.exports = function (io) {
       });
     } catch (err) {
       console.error("Error occurred:", err);
-      await client.query("ROLLBACK");
+      await safeRollback(client);
       res.status(500).json({
         success: false,
         error: "An error occurred during vote submission",

@@ -7,10 +7,10 @@
     <link rel="icon" href="/elektor-logo.png" />
     <title>Elektor - Login to Vote</title>
   </head>
-  <body class="min-h-screen flex bg-gradient-to-br from-blue-50 via-white to-purple-50 font-sans antialiased">
+  <body class="min-h-screen flex bg-slate-50 font-sans antialiased">
     
     <!-- Left Side - Branding (Hidden on mobile) -->
-    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-700 to-purple-700 p-12 flex-col justify-between relative overflow-hidden">
+    <div class="hidden lg:flex lg:w-1/2 bg-blue-700 p-12 flex-col justify-between relative overflow-hidden">
       <!-- Decorative circles -->
       <div class="absolute top-0 right-0 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2"></div>
       <div class="absolute bottom-0 left-0 w-80 h-80 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2"></div>
@@ -33,19 +33,6 @@
           </p>
         </div>
       </div>
-      
-      <div class="relative z-10">
-        <div class="grid grid-cols-3 gap-4 text-white/90">
-          <div>
-            <div class="text-3xl font-bold">99.9%</div>
-            <div class="text-sm text-blue-200">Uptime</div>
-          </div>
-          <div>
-            <div class="text-3xl font-bold">256-bit</div>
-            <div class="text-sm text-blue-200">Encryption</div>
-          </div>
-        </div>
-      </div>
     </div>
 
     <!-- Right Side - Login Form -->
@@ -54,17 +41,17 @@
         
         <!-- Mobile Logo -->
         <div class="lg:hidden flex items-center justify-center gap-3 mb-8">
-          <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg">
+          <div class="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg">
                <img src="/elektor-logo.png" alt="Elektor Logo" class="w-12 h-12 object-contain">
 
           </div>
-          <span class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Elektor</span>
+          <span class="text-2xl font-bold text-blue-600">Elektor</span>
         </div>
 
         <!-- Welcome Text -->
         <div class="mb-8">
           <p class="text-gray-600">
-            Enter your credentials to access the voting poertal
+            Enter your credentials to access the voting portal
           </p>
         </div>
 
@@ -116,21 +103,10 @@
     <p class="text-xs text-gray-500 mt-1.5">Use your registered voter ID</p>
   </div>
 
-  <!-- Security Badge -->
-  <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 flex items-start gap-3">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-    </svg>
-    <div>
-      <p class="text-xs font-medium text-blue-900">Secure Connection</p>
-      <p class="text-xs text-blue-700 mt-0.5">Your vote is encrypted and anonymous</p>
-    </div>
-  </div>
-
   <!-- Submit Button -->
   <button
     type="submit"
-    class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-200 focus:outline-none flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5"
+    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-6 rounded-xl transition-all duration-200 focus:ring-4 focus:ring-blue-200 focus:outline-none flex items-center justify-center gap-2 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 hover:-translate-y-0.5"
   >
     <span>Sign In to Vote</span>
     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -145,19 +121,8 @@
   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
   </svg>
-  <span>Back to Dashboard</span>
+  <span>Back to Home</span>
 </a>
-
-
-        <!-- Footer -->
-        <div class="mt-8 text-center">
-          <p class="text-sm text-gray-500">
-            Need help? <a href="#" class="text-blue-600 hover:text-blue-700 font-medium hover:underline">Contact Support</a>
-          </p>
-          <p class="text-xs text-gray-400 mt-3">
-            Powered by <span class="font-semibold text-gray-600">Elektor</span> • Secure Voting System
-          </p>
-        </div>
 
       </div>
     </div>

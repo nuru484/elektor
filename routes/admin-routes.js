@@ -3,24 +3,76 @@ const router = express.Router();
 const passport = require("passport");
 const pool = require("../db/pool");
 const multer = require("multer");
-const xlsx = require("xlsx");
 const bcrypt = require("bcrypt");
+const { parseVotersBuffer } = require("../config/excel-parser");
+const { ensureDemoAdmin } = require("../db/db-setup");
+const {
+  requireAdmin,
+  requireSuperAdmin,
+  blockDemoWrites,
+} = require("../config/auth-middleware");
+const { loginLimiter, writeLimiter } = require("../config/rate-limiters");
 
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 },
+const demoEnabled = process.env.DEMO_MODE === "true";
+const {
+  addAdminValidators,
+  addVoterValidators,
+  addCandidateValidators,
+} = require("../config/validators");
+
+// Only accept image uploads for candidate photos.
+const uploadImage = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) return cb(null, true);
+    cb(new Error("Only image files are allowed for candidate photos."));
+  },
 });
 
-// Middleware to check if user is super admin
-function isSuperAdmin(req, res, next) {
-  if (req.isAuthenticated() && req.user.role === "super_admin") {
-    return next();
+// Only accept spreadsheets for the voter bulk upload.
+const uploadSpreadsheet = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const allowed = [
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
+    ];
+    if (allowed.includes(file.mimetype)) return cb(null, true);
+    cb(new Error("Only .xlsx or .xls files are allowed."));
+  },
+});
+
+// Runs a multer upload and returns its errors (oversized/wrong type) as a
+// clean JSON 400, since the upload forms consume JSON.
+function runUpload(uploader) {
+  return (req, res, next) => {
+    uploader(req, res, (err) => {
+      if (!err) return next();
+
+      let message = "File upload failed.";
+      if (err instanceof multer.MulterError) {
+        message =
+          err.code === "LIMIT_FILE_SIZE"
+            ? "File is too large."
+            : "File upload error.";
+      } else if (err.message) {
+        message = err.message;
+      }
+      return res.status(400).json({ success: false, error: message });
+    });
+  };
+}
+
+// Rolls back without letting a failing ROLLBACK mask the original error or
+// crash the process.
+async function safeRollback(client) {
+  try {
+    await client.query("ROLLBACK");
+  } catch (rollbackErr) {
+    console.error("Rollback failed:", rollbackErr);
   }
-  return res.status(403).json({
-    success: false,
-    error: "Access denied. Super admin only.",
-  });
 }
 
 // Helper function to ensure votingstats record exists
@@ -47,10 +99,10 @@ async function updateVotingStats(client, increment = 1) {
 
 // Admin Login Page Route
 router.get("/login", (req, res) => {
-  res.render("admin-login", { errors: [] });
+  res.render("admin-login", { errors: [], demoEnabled });
 });
 
-router.post("/login", (req, res, next) => {
+router.post("/login", loginLimiter, (req, res, next) => {
   passport.authenticate("admin", (err, user, info) => {
     if (err) {
       return next(err);
@@ -63,6 +115,7 @@ router.post("/login", (req, res, next) => {
             message: info?.message || "Invalid username or password",
           },
         ],
+        demoEnabled,
       });
     }
 
@@ -70,204 +123,238 @@ router.post("/login", (req, res, next) => {
       if (err) {
         return next(err);
       }
-
-      console.log("Admin logged in:", user);
       return res.redirect("/admin/dashboard");
     });
   })(req, res, next);
 });
 
-// Admin Dashboard Route
-router.get("/dashboard", async (req, res) => {
-  if (req.isAuthenticated()) {
-    try {
-      const page = parseInt(req.query.page) || 1;
-      const limit = parseInt(req.query.limit) || 10;
-      const offset = (page - 1) * limit;
+// One-click demo login (portfolio only, gated by DEMO_MODE). Logs into a
+// dedicated, read-only demo-admin account - never the real super admin - and
+// needs no password. Destructive actions are blocked by blockDemoWrites.
+router.post("/demo-login", loginLimiter, async (req, res, next) => {
+  if (!demoEnabled) {
+    return res.status(404).send("Not found");
+  }
 
-      const result = await pool.query(
-        "SELECT * FROM voters ORDER BY id DESC LIMIT $1 OFFSET $2",
-        [limit, offset]
-      );
-
-      const totalResult = await pool.query("SELECT COUNT(*) FROM voters");
-      const totalVoters = parseInt(totalResult.rows[0].count);
-      const totalPages = Math.ceil(totalVoters / limit);
-
-      res.setHeader(
-        "Cache-Control",
-        "no-store, no-cache, must-revalidate, proxy-revalidate"
-      );
-      res.setHeader("Pragma", "no-cache");
-      res.setHeader("Expires", "0");
-      res.setHeader("Surrogate-Control", "no-store");
-
-      res.render("admin-dashboard", {
-        voters: result.rows,
-        currentPage: page,
-        totalPages: totalPages,
-        limit: limit,
-        totalVoters: totalVoters,
-        searchQuery: "",
-        user: req.user,
-        isSuperAdmin: req.user.role === "super_admin",
-      });
-    } catch (err) {
-      console.error("Error fetching voters:", err);
-      return res.status(500).json({
+  try {
+    const demo = await ensureDemoAdmin();
+    if (!demo) {
+      return res.status(503).json({
         success: false,
-        error: "Failed to fetch voters.",
+        error: "Demo account is not available right now.",
       });
     }
-  } else {
-    res.redirect("/admin/login");
+
+    const user = {
+      id: demo.id,
+      type: "admin",
+      role: demo.role,
+      firstName: demo.firstname,
+      lastName: demo.lastname,
+      userName: demo.username,
+    };
+
+    req.logIn(user, (err) => {
+      if (err) {
+        return next(err);
+      }
+      return res.redirect("/admin/dashboard");
+    });
+  } catch (err) {
+    return next(err);
+  }
+});
+
+// Admin Dashboard Route
+router.get("/dashboard", requireAdmin, async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const offset = (page - 1) * limit;
+
+    const result = await pool.query(
+      "SELECT * FROM voters ORDER BY id DESC LIMIT $1 OFFSET $2",
+      [limit, offset]
+    );
+
+    const totalResult = await pool.query("SELECT COUNT(*) FROM voters");
+    const totalVoters = parseInt(totalResult.rows[0].count);
+    const totalPages = Math.ceil(totalVoters / limit);
+
+    res.render("admin-dashboard", {
+      voters: result.rows,
+      currentPage: page,
+      totalPages: totalPages,
+      limit: limit,
+      totalVoters: totalVoters,
+      searchQuery: "",
+      user: req.user,
+      isSuperAdmin: req.user.role === "super_admin",
+    });
+  } catch (err) {
+    console.error("Error fetching voters:", err);
+    return res.status(500).json({
+      success: false,
+      error: "Failed to fetch voters.",
+    });
   }
 });
 
 // Form Routes
-router.get("/add-voter-form", isSuperAdmin, (req, res) => {
+router.get("/add-voter-form", requireSuperAdmin, (req, res) => {
   res.render("add-voter-form");
 });
 
-router.get("/add-candidate-form", (req, res) => {
+router.get("/add-candidate-form", requireAdmin, (req, res) => {
   res.render("add-candidate-form");
 });
 
-router.get("/upload-voters-form", isSuperAdmin, (req, res) => {
+router.get("/upload-voters-form", requireSuperAdmin, (req, res) => {
   res.render("upload-voters-form");
 });
 
-router.get("/add-admin-form", isSuperAdmin, (req, res) => {
+router.get("/add-admin-form", requireSuperAdmin, (req, res) => {
   res.render("add-admin-form");
 });
 
 // Add Admin (Super Admin Only)
-router.post("/add-admin", isSuperAdmin, async (req, res) => {
-  try {
-    const { firstName, lastName, userName, password, phone, role } = req.body;
+router.post(
+  "/add-admin",
+  requireSuperAdmin,
+  blockDemoWrites,
+  writeLimiter,
+  addAdminValidators,
+  async (req, res) => {
+    try {
+      const { firstName, lastName, userName, password, phone, role } = req.body;
 
-    // Validate role
-    if (!["admin", "super_admin"].includes(role)) {
-      return res.status(400).json({
+      // Check if username already exists
+      const existingUser = await pool.query(
+        "SELECT id FROM admin WHERE userName = $1",
+        [userName]
+      );
+
+      if (existingUser.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: "Username already exists.",
+        });
+      }
+
+      // Hash password
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      await pool.query(
+        "INSERT INTO admin (firstName, lastName, userName, password, phone, role) VALUES ($1, $2, $3, $4, $5, $6)",
+        [firstName, lastName, userName, hashedPassword, phone || null, role]
+      );
+
+      return res.status(201).json({
+        success: true,
+        message: "Admin added successfully",
+      });
+    } catch (err) {
+      console.error("Error adding admin:", err);
+      if (err.code === "23505") {
+        return res.status(400).json({
+          success: false,
+          error: "Username already exists.",
+        });
+      }
+      return res.status(500).json({
         success: false,
-        error: "Invalid role specified.",
+        error: "Failed to add admin.",
       });
     }
-
-    // Check if username already exists
-    const existingUser = await pool.query(
-      "SELECT id FROM admin WHERE userName = $1",
-      [userName]
-    );
-
-    if (existingUser.rows.length > 0) {
-      return res.status(400).json({
-        success: false,
-        error: "Username already exists.",
-      });
-    }
-
-    // Hash password
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    await pool.query(
-      "INSERT INTO admin (firstName, lastName, userName, password, phone, role) VALUES ($1, $2, $3, $4, $5, $6)",
-      [firstName, lastName, userName, hashedPassword, phone || null, role]
-    );
-
-    return res.status(201).json({
-      success: true,
-      message: "Admin added successfully",
-    });
-  } catch (err) {
-    console.error("Error adding admin:", err);
-    if (err.code === "23505") {
-      return res.status(400).json({
-        success: false,
-        error: "Username already exists.",
-      });
-    }
-    return res.status(500).json({
-      success: false,
-      error: "Failed to add admin.",
-    });
   }
-});
+);
 
 // Add Single Voter (Super Admin Only)
-router.post("/add-voter", isSuperAdmin, async (req, res) => {
-  const client = await pool.connect();
-
-  try {
-    await client.query("BEGIN");
-
-    const { firstName, lastName, voterId, phone_number } = req.body;
-
-    // Check if voter ID already exists
-    const existingVoter = await client.query(
-      "SELECT id FROM voters WHERE voterId = $1",
-      [voterId]
-    );
-
-    if (existingVoter.rows.length > 0) {
-      await client.query("ROLLBACK");
-      return res.status(400).json({
-        success: false,
-        error: "Voter ID already exists.",
-      });
-    }
-
-    await ensureVotingStatsExists(client);
-
-    await client.query(
-      "INSERT INTO voters (firstname, lastname, voterid, phone_number) VALUES ($1, $2, $3, $4)",
-      [firstName, lastName, voterId, phone_number || null]
-    );
-
-    await updateVotingStats(client, 1);
-
-    await client.query("COMMIT");
-
-    return res.status(201).json({
-      success: true,
-      message: "Voter added successfully",
-    });
-  } catch (err) {
-    await client.query("ROLLBACK");
-    console.error("Error adding voter:", err);
-
-    if (err.code === "23505") {
-      return res.status(400).json({
-        success: false,
-        error: "Voter ID already exists.",
-      });
-    }
-
-    return res.status(500).json({
-      success: false,
-      error: "Failed to add voter.",
-    });
-  } finally {
-    client.release();
-  }
-});
-
-// Add Single Candidate
 router.post(
-  "/add-candidate",
-  upload.single("profilePhoto"),
+  "/add-voter",
+  requireSuperAdmin,
+  blockDemoWrites,
+  writeLimiter,
+  addVoterValidators,
   async (req, res) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({
-        success: false,
-        error: "Unauthorized. Please login.",
-      });
-    }
+    const client = await pool.connect();
 
     try {
+      await client.query("BEGIN");
+
+      const { firstName, lastName, voterId, phone_number } = req.body;
+
+      // Check if voter ID already exists
+      const existingVoter = await client.query(
+        "SELECT id FROM voters WHERE voterId = $1",
+        [voterId]
+      );
+
+      if (existingVoter.rows.length > 0) {
+        await safeRollback(client);
+        return res.status(400).json({
+          success: false,
+          error: "Voter ID already exists.",
+        });
+      }
+
+      await ensureVotingStatsExists(client);
+
+      await client.query(
+        "INSERT INTO voters (firstname, lastname, voterid, phone_number) VALUES ($1, $2, $3, $4)",
+        [firstName, lastName, voterId, phone_number || null]
+      );
+
+      await updateVotingStats(client, 1);
+
+      await client.query("COMMIT");
+
+      return res.status(201).json({
+        success: true,
+        message: "Voter added successfully",
+      });
+    } catch (err) {
+      await safeRollback(client);
+      console.error("Error adding voter:", err);
+
+      if (err.code === "23505") {
+        return res.status(400).json({
+          success: false,
+          error: "Voter ID already exists.",
+        });
+      }
+
+      return res.status(500).json({
+        success: false,
+        error: "Failed to add voter.",
+      });
+    } finally {
+      client.release();
+    }
+  }
+);
+
+// Add Single Candidate (Admins)
+router.post(
+  "/add-candidate",
+  requireAdmin,
+  blockDemoWrites,
+  writeLimiter,
+  runUpload(uploadImage.single("profilePhoto")),
+  addCandidateValidators,
+  async (req, res) => {
+    try {
       const { firstName, lastName, position } = req.body;
-      const profilePhoto = req.file ? req.file.buffer.toString("base64") : null;
+
+      // Store as a data URI so <img src> renders it (raw base64 alone doesn't).
+      let profilePhoto = null;
+      if (req.file) {
+        const mime = req.file.mimetype || "image/jpeg";
+        profilePhoto = `data:${mime};base64,${req.file.buffer.toString(
+          "base64"
+        )}`;
+      }
 
       await pool.query(
         "INSERT INTO candidates (firstName, lastName, position, profilePhoto) VALUES ($1, $2, $3, $4)",
@@ -291,8 +378,10 @@ router.post(
 // Upload Voters from Excel (Super Admin Only)
 router.post(
   "/upload-voters",
-  isSuperAdmin,
-  upload.single("votersFile"),
+  requireSuperAdmin,
+  blockDemoWrites,
+  writeLimiter,
+  runUpload(uploadSpreadsheet.single("votersFile")),
   async (req, res) => {
     const client = await pool.connect();
 
@@ -304,10 +393,17 @@ router.post(
         });
       }
 
-      const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
-      const sheetName = workbook.SheetNames[0];
-      const worksheet = workbook.Sheets[sheetName];
-      const voters = xlsx.utils.sheet_to_json(worksheet);
+      // A corrupt/unreadable file is a client error (400), not a server fault.
+      let voters;
+      try {
+        voters = await parseVotersBuffer(req.file.buffer);
+      } catch (parseErr) {
+        console.error("Error parsing voters file:", parseErr);
+        return res.status(400).json({
+          success: false,
+          error: "Could not read the Excel file. Please check the format.",
+        });
+      }
 
       if (voters.length === 0) {
         return res.status(400).json({
@@ -337,10 +433,10 @@ router.post(
             await client.query(
               "INSERT INTO voters (firstName, lastName, voterId, phone_number) VALUES ($1, $2, $3, $4)",
               [
-                voter.firstName,
-                voter.lastName,
-                voter.voterId,
-                voter.phone_number || null,
+                String(voter.firstName).trim(),
+                String(voter.lastName).trim(),
+                String(voter.voterId).trim(),
+                voter.phone_number ? String(voter.phone_number).trim() : null,
               ]
             );
             successCount++;
@@ -367,7 +463,7 @@ router.post(
           },
         });
       } catch (err) {
-        await client.query("ROLLBACK");
+        await safeRollback(client);
         throw err;
       }
     } catch (err) {
@@ -383,48 +479,43 @@ router.post(
 );
 
 // Approve Voter Route
-router.post("/approve-voter/:voterId", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({
-      success: false,
-      error: "Unauthorized",
-    });
-  }
+router.post(
+  "/approve-voter/:voterId",
+  requireAdmin,
+  blockDemoWrites,
+  writeLimiter,
+  async (req, res) => {
+    try {
+      const { voterId } = req.params;
 
-  try {
-    const { voterId } = req.params;
+      const result = await pool.query(
+        "UPDATE voters SET approvalStatus = true WHERE voterId = $1 RETURNING *",
+        [voterId]
+      );
 
-    const result = await pool.query(
-      "UPDATE voters SET approvalStatus = true WHERE voterId = $1 RETURNING *",
-      [voterId]
-    );
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: "Voter not found",
+        });
+      }
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({
+      res.json({
+        success: true,
+        message: "Voter approved successfully",
+        voter: result.rows[0],
+      });
+    } catch (err) {
+      console.error("Error approving voter:", err);
+      return res.status(500).json({
         success: false,
-        error: "Voter not found",
+        error: "Failed to approve voter.",
       });
     }
-
-    res.json({
-      success: true,
-      message: "Voter approved successfully",
-      voter: result.rows[0],
-    });
-  } catch (err) {
-    console.error("Error approving voter:", err);
-    return res.status(500).json({
-      success: false,
-      error: "Failed to approve voter.",
-    });
   }
-});
+);
 
-router.get("/search", async (req, res) => {
-  if (!req.isAuthenticated()) {
-    return res.redirect("/admin/login");
-  }
-
+router.get("/search", requireAdmin, async (req, res) => {
   const searchTerm = req.query.query || "";
   const page = parseInt(req.query.page) || 1;
   const limit = parseInt(req.query.limit) || 10;
@@ -448,13 +539,13 @@ router.get("/search", async (req, res) => {
       countQuery = `SELECT COUNT(*) FROM voters`;
       countParams = [];
     } else if (searchWords.length === 1) {
-      query = `SELECT * FROM voters 
+      query = `SELECT * FROM voters
                WHERE (firstName ILIKE $1 OR lastName ILIKE $1 OR voterId ILIKE $1)
                ORDER BY id DESC
                LIMIT $2 OFFSET $3`;
       queryParams = [`%${searchWords[0]}%`, limit, offset];
 
-      countQuery = `SELECT COUNT(*) FROM voters 
+      countQuery = `SELECT COUNT(*) FROM voters
                     WHERE (firstName ILIKE $1 OR lastName ILIKE $1 OR voterId ILIKE $1)`;
       countParams = [`%${searchWords[0]}%`];
     } else {
@@ -468,7 +559,7 @@ router.get("/search", async (req, res) => {
         )
         .join(" AND ");
 
-      query = `SELECT * FROM voters 
+      query = `SELECT * FROM voters
                WHERE (
                  CONCAT(firstName, ' ', lastName) ILIKE $${
                    wordPatterns.length + 1
@@ -482,7 +573,7 @@ router.get("/search", async (req, res) => {
       }`;
       queryParams = [...wordPatterns, fullNamePattern, limit, offset];
 
-      countQuery = `SELECT COUNT(*) FROM voters 
+      countQuery = `SELECT COUNT(*) FROM voters
                     WHERE (
                       CONCAT(firstName, ' ', lastName) ILIKE $${
                         wordPatterns.length + 1
@@ -497,14 +588,6 @@ router.get("/search", async (req, res) => {
     const totalResult = await pool.query(countQuery, countParams);
     const totalVoters = parseInt(totalResult.rows[0].count);
     const totalPages = Math.ceil(totalVoters / limit);
-
-    res.setHeader(
-      "Cache-Control",
-      "no-store, no-cache, must-revalidate, proxy-revalidate"
-    );
-    res.setHeader("Pragma", "no-cache");
-    res.setHeader("Expires", "0");
-    res.setHeader("Surrogate-Control", "no-store");
 
     res.render("admin-dashboard", {
       voters,
@@ -521,44 +604,6 @@ router.get("/search", async (req, res) => {
     return res.status(500).json({
       success: false,
       error: "Failed to search voters.",
-    });
-  }
-});
-
-router.post("/demo-login", async (req, res, next) => {
-  try {
-    const username = process.env.DEFAULT_ADMIN_USERNAME;
-    const password = process.env.DEFAULT_ADMIN_PASSWORD;
-
-    // Set the body with correct field names
-    req.body = { username, password };
-
-    passport.authenticate("admin", (err, user, info) => {
-      if (err) {
-        return next(err);
-      }
-
-      if (!user) {
-        return res.status(401).json({
-          success: false,
-          error:
-            info?.message ||
-            "Demo login failed. Please check environment variables.",
-        });
-      }
-
-      req.logIn(user, (err) => {
-        if (err) {
-          return next(err);
-        }
-        return res.redirect("/admin/dashboard");
-      });
-    })(req, res, next);
-  } catch (err) {
-    console.error("Error during demo login:", err);
-    return res.status(500).json({
-      success: false,
-      error: "Demo login failed.",
     });
   }
 });

@@ -1,5 +1,68 @@
+const { Client } = require("pg");
 const pool = require("./pool");
+const { buildSslConfig } = require("./pool");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
+
+// In dev, create the target database if it doesn't exist by connecting to the
+// server's "postgres" maintenance DB. Skipped in production (the host
+// provisions the DB and the app user usually can't CREATE DATABASE).
+async function ensureDatabaseExists() {
+  if (process.env.NODE_ENV === "production") {
+    return;
+  }
+
+  const connectionString = process.env.DATABASE_URL;
+  if (!connectionString) {
+    return;
+  }
+
+  let targetUrl;
+  try {
+    targetUrl = new URL(connectionString);
+  } catch {
+    return; // not a parseable URL; let the normal connection surface the error
+  }
+
+  const dbName = decodeURIComponent(targetUrl.pathname.replace(/^\//, ""));
+  if (!dbName) {
+    return;
+  }
+
+  // Connect to the maintenance database on the same server.
+  const adminUrl = new URL(connectionString);
+  adminUrl.pathname = "/postgres";
+
+  const client = new Client({
+    connectionString: adminUrl.toString(),
+    ssl: buildSslConfig(),
+  });
+
+  try {
+    await client.connect();
+    const { rowCount } = await client.query(
+      "SELECT 1 FROM pg_database WHERE datname = $1",
+      [dbName]
+    );
+
+    if (rowCount === 0) {
+      // Database identifiers can't be parameterized; quote and escape it.
+      const safeName = `"${dbName.replace(/"/g, '""')}"`;
+      await client.query(`CREATE DATABASE ${safeName}`);
+      console.log(`✓ Created database "${dbName}"`);
+    } else {
+      console.log(`ℹ Database "${dbName}" already exists`);
+    }
+  } catch (err) {
+    // Non-fatal: if we can't auto-create (e.g. no maintenance access), fall
+    // through and let initializeDatabase report a clear error if it's missing.
+    console.warn(
+      `⚠ Could not auto-create database (${err.message}). Continuing...`
+    );
+  } finally {
+    await client.end().catch(() => {});
+  }
+}
 
 // Updated table schemas
 const createAdminTableSQL = `
@@ -90,13 +153,21 @@ async function seedDefaultAdmin() {
 
     const firstName = process.env.DEFAULT_ADMIN_FIRSTNAME || "Super";
     const lastName = process.env.DEFAULT_ADMIN_LASTNAME || "Admin";
-    const userName = process.env.DEFAULT_ADMIN_USERNAME || "admin";
-    const password = process.env.DEFAULT_ADMIN_PASSWORD || "1234";
+    const userName = process.env.DEFAULT_ADMIN_USERNAME;
+    const password = process.env.DEFAULT_ADMIN_PASSWORD;
     const phone = process.env.DEFAULT_ADMIN_PHONE || null;
 
+    // No insecure fallbacks (the old default was "1234"). Require real
+    // credentials and a minimum password strength before seeding.
     if (!userName || !password) {
       throw new Error(
         "DEFAULT_ADMIN_USERNAME and DEFAULT_ADMIN_PASSWORD must be set in environment variables"
+      );
+    }
+
+    if (password.length < 8) {
+      throw new Error(
+        "DEFAULT_ADMIN_PASSWORD must be at least 8 characters long"
       );
     }
 
@@ -134,15 +205,57 @@ async function seedDefaultAdmin() {
   }
 }
 
+// Ensures the read-only demo-admin account exists when DEMO_MODE=true.
+// Idempotent and safe to call on every demo-login attempt; the password is
+// random since the demo login is gated and passwordless.
+async function ensureDemoAdmin() {
+  if (process.env.DEMO_MODE !== "true") {
+    return null;
+  }
+
+  const userName = process.env.DEMO_ADMIN_USERNAME || "demo-admin";
+
+  const existing = await pool.query(
+    "SELECT * FROM admin WHERE username = $1",
+    [userName]
+  );
+  if (existing.rows.length > 0) {
+    return existing.rows[0];
+  }
+
+  const randomPassword = crypto.randomBytes(24).toString("hex");
+  const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+  await pool.query(
+    `INSERT INTO admin (firstName, lastName, userName, password, role)
+     VALUES ($1, $2, $3, $4, $5)
+     ON CONFLICT (userName) DO NOTHING`,
+    ["Demo", "Admin", userName, hashedPassword, "super_admin"]
+  );
+
+  const { rows } = await pool.query(
+    "SELECT * FROM admin WHERE username = $1",
+    [userName]
+  );
+  return rows[0] || null;
+}
+
 async function setupDatabase() {
   try {
     console.log("Starting database setup...\n");
+
+    await ensureDatabaseExists();
 
     const client = await pool.connect();
     client.release();
 
     await initializeDatabase();
     await seedDefaultAdmin();
+
+    const demo = await ensureDemoAdmin();
+    if (demo) {
+      console.log("✓ Demo admin account ready (DEMO_MODE enabled)");
+    }
 
     console.log("\n✓ Database setup completed successfully!");
     return true;
@@ -170,5 +283,7 @@ async function setupDatabase() {
 module.exports = {
   initializeDatabase,
   seedDefaultAdmin,
+  ensureDemoAdmin,
+  ensureDatabaseExists,
   setupDatabase,
 };

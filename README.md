@@ -137,6 +137,39 @@ Live Demo: https://elektor.manuru.dev
 
 Deployed via Render with a connected PostgreSQL instance.
 
+### 🔒 Security
+
+Hardening applied to this build:
+
+- **Role-based access control** — every `/admin` route is guarded by
+  `requireAdmin` / `requireSuperAdmin`, so a logged-in voter can no longer reach
+  admin pages or actions.
+- **Security headers via Helmet** — CSP, HSTS, `X-Content-Type-Options`,
+  frameguard, etc.
+- **Rate limiting** — login endpoints are throttled to slow credential guessing.
+- **Server-side validation** — all write endpoints validate input with
+  `express-validator`; file uploads are restricted by MIME type and size.
+- **No insecure fallbacks** — the app refuses to start without `SESSION_SECRET`,
+  and the seeded admin password must be provided (minimum 8 characters).
+- **Configurable database SSL** — certificate validation is on by default and
+  opt-out only via env var.
+- **Dependencies** — the vulnerable `xlsx` parser was replaced with the
+  maintained `exceljs`; remaining advisories are non-breaking transitive deps.
+
+**Demo mode (portfolio):** set `DEMO_MODE=true` to show a one-click
+"Explore the Admin Demo" button on the admin login page. It signs visitors into
+a dedicated, auto-created `demo-admin` account (never the real super admin, no
+password exposed) so they can tour the full admin UI. That account is
+**read-only** - every page and form is browsable, but create/approve/upload
+actions are blocked so one visitor can't wreck the shared demo. Leave it unset
+for a real election and the button and route disappear entirely.
+
+> **Known limitation:** voters authenticate with a Voter ID only (no second
+> factor). Anyone who learns an approved voter's ID could vote as them. This is
+> acceptable for demos and low-stakes internal elections, but a real election
+> needs a second factor (e.g. an SMS one-time code). Rate limiting mitigates
+> bulk guessing but does not close this gap.
+
 ### 🤝 Contributing
 - Contributions, issues, and feature requests are welcome!
 - Please open a pull request.

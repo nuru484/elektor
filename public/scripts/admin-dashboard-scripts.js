@@ -49,19 +49,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 let currentVoterId = null;
 
-function showApprovalModal(voterId, voterName) {
-  currentVoterId = voterId;
-  approvalModalMessage.textContent = `Are you sure you want to approve ${voterName}?`;
-  approvalModal.style.display = "flex";
-  document.body.classList.add("modal-open");
-}
-
-function closeApprovalModal() {
-  approvalModal.style.display = "none";
-  document.body.classList.remove("modal-open");
-  currentVoterId = null;
-}
-
 async function loadAddVoterForm() {
   const modal = document.getElementById("voter-form-modal");
   const formContainer = document.getElementById("voter-form");
@@ -394,46 +381,6 @@ function showError(containerId, message) {
         </div>
       </div>`;
   }
-}
-
-function showSuccessNotification(message) {
-  const notification = document.createElement("div");
-  notification.className =
-    "fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 z-[200]";
-  notification.innerHTML = `
-    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-    </svg>
-    ${message}`;
-  document.body.appendChild(notification);
-  setTimeout(() => {
-    notification.classList.add(
-      "opacity-0",
-      "transition-opacity",
-      "duration-300"
-    );
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
-}
-
-function showErrorNotification(message) {
-  const notification = document.createElement("div");
-  notification.className =
-    "fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 z-[200]";
-  notification.innerHTML = `
-    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-    ${message}`;
-  document.body.appendChild(notification);
-  setTimeout(() => {
-    notification.classList.add(
-      "opacity-0",
-      "transition-opacity",
-      "duration-300"
-    );
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
 }
 
 function showSuccessNotification(message, duration = 3000) {

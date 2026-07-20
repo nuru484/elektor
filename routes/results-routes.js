@@ -21,6 +21,7 @@ router.get("/resultsPage", async (req, res) => {
 
     const votingStatsResult = await pool.query(votingStatsQuery);
 
+    let votingStats;
     if (votingStatsResult.rows.length === 0) {
       const initStatsQuery = `
         INSERT INTO votingstats (total_number_of_voters, voter_turnout, voter_turnoff, total_votes_cast, skipped_votes)
@@ -28,9 +29,9 @@ router.get("/resultsPage", async (req, res) => {
         RETURNING *;
       `;
       const initResult = await pool.query(initStatsQuery);
-      var votingStats = initResult.rows[0];
+      votingStats = initResult.rows[0];
     } else {
-      var votingStats = votingStatsResult.rows[0];
+      votingStats = votingStatsResult.rows[0];
     }
 
     res.render("results", {
